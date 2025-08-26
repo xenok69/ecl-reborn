@@ -1,0 +1,267 @@
+/* Challenges Container */
+.ChallengesContainer {
+    min-height: 100vh;
+    padding: 100px 2rem 2rem 2rem; /* Account for fixed header */
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.Header {
+    text-align: center;
+    margin-bottom: 3rem;
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+}
+
+.Title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    background: linear-gradient(135deg, var(--color-white) 0%, var(--color-near-white) 50%, var(--color-white) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 12px var(--color-white-30);
+}
+
+.Subtitle {
+    font-size: 1.2rem;
+    color: var(--color-gray);
+    margin: 0 0 1.5rem 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.StatItem {
+    font-size: 1rem;
+    color: var(--color-gray);
+    padding: 0.5rem 1rem;
+    background: var(--color-black-30);
+    border-radius: 8px;
+    border: 1px solid var(--color-white-10);
+}
+
+.StatItem strong {
+    color: var(--color-white);
+}
+
+/* Levels Grid */
+.LevelsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.LevelItem {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.LevelItem:nth-child(1) { animation-delay: 0.1s; }
+.LevelItem:nth-child(2) { animation-delay: 0.2s; }
+.LevelItem:nth-child(3) { animation-delay: 0.3s; }
+.LevelItem:nth-child(4) { animation-delay: 0.4s; }
+.LevelItem:nth-child(5) { animation-delay: 0.5s; }
+.LevelItem:nth-child(n+6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.NoLevels {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-gray);
+    font-size: 1.2rem;
+    background: var(--color-black-30);
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+}
+
+/* Pagination */
+.Pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.PaginationBtn {
+    padding: 0.75rem 1rem;
+    background: var(--color-black-30);
+    border: 1px solid var(--color-white-20);
+    border-radius: 8px;
+    color: var(--color-gray);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+}
+
+.PaginationBtn:hover:not(:disabled) {
+    background: var(--color-black-50);
+    border-color: var(--color-white-30);
+    color: var(--color-white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-black-50);
+}
+
+.PaginationBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.PaginationBtn.Active {
+    background: var(--color-white);
+    color: var(--color-black);
+    border-color: var(--color-white);
+    font-weight: 700;
+    box-shadow: 0 0 20px var(--color-white-30);
+}
+
+.PaginationBtn.PrevNext {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .ChallengesContainer {
+        padding: 90px 1.5rem 2rem 1.5rem;
+    }
+    
+    .Header {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .Title {
+        font-size: 2.5rem;
+    }
+    
+    .LevelsGrid {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ChallengesContainer {
+        padding: 80px 1rem 2rem 1rem;
+    }
+    
+    .Header {
+        padding: 1rem;
+    }
+    
+    .Title {
+        font-size: 2rem;
+    }
+    
+    .Subtitle {
+        font-size: 1rem;
+    }
+    
+    .Stats {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .LevelsGrid {
+        gap: 1rem;
+    }
+    
+    .Pagination {
+        gap: 0.25rem;
+        padding: 0 1rem;
+    }
+    
+    .PaginationBtn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .PaginationBtn.PrevNext {
+        padding: 0.6rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ChallengesContainer {
+        padding: 70px 0.75rem 1rem 0.75rem;
+    }
+    
+    .Header {
+        margin-bottom: 1.5rem;
+        padding: 1rem 0.75rem;
+    }
+    
+    .Title {
+        font-size: 1.8rem;
+    }
+    
+    .Subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    
+    .StatItem {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+/* Loading States */
+.ChallengesContainer[data-loading="true"] .LevelItem {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Scroll to Top Button (if needed in future) */
+.ScrollToTop {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem;
+    background: var(--color-white);
+    color: var(--color-black);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 20px var(--color-black-50);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.ScrollToTop.Visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.ScrollToTop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--color-black-70);
+}

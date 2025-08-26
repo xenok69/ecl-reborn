@@ -1,68 +1,95 @@
+/* Global Color Scheme - Triadic */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Primary Colors (from logo) */
+  --color-primary-white: #FFFFFF;
+  --color-primary-dark: #161616;
+  
+  /* Triadic Accent Color */
+  --color-accent-blue: #4A90E2;
+  
+  /* Extended Palette */
+  --color-white: #FFFFFF;
+  --color-near-white: #F8F9FA;
+  --color-light-gray: #E9ECEF;
+  --color-gray: #6C757D;
+  --color-dark-gray: #495057;
+  --color-near-black: #212529;
+  --color-black: #161616;
+  
+  /* Blue Variants */
+  --color-blue-light: #B3D4FC;
+  --color-blue: #4A90E2;
+  --color-blue-dark: #2E5B9A;
+  --color-blue-darker: #1A3759;
+  
+  /* Accent Colors for highlights and interactions */
+  --color-gold: #FFD700;
+  --color-gold-light: #FFEB64;
+  --color-gold-dark: #B8860B;
+  
+  /* Status Colors */
+  --color-success: #28A745;
+  --color-warning: #FFC107;
+  --color-error: #DC3545;
+  --color-info: var(--color-blue);
+  
+  /* Transparent Variants */
+  --color-white-10: rgba(255, 255, 255, 0.1);
+  --color-white-20: rgba(255, 255, 255, 0.2);
+  --color-white-30: rgba(255, 255, 255, 0.3);
+  --color-white-50: rgba(255, 255, 255, 0.5);
+  --color-white-70: rgba(255, 255, 255, 0.7);
+  --color-white-90: rgba(255, 255, 255, 0.9);
+  
+  --color-black-10: rgba(22, 22, 22, 0.1);
+  --color-black-20: rgba(22, 22, 22, 0.2);
+  --color-black-30: rgba(22, 22, 22, 0.3);
+  --color-black-50: rgba(22, 22, 22, 0.5);
+  --color-black-70: rgba(22, 22, 22, 0.7);
+  --color-black-90: rgba(22, 22, 22, 0.9);
+  
+  --color-blue-10: rgba(74, 144, 226, 0.1);
+  --color-blue-20: rgba(74, 144, 226, 0.2);
+  --color-blue-30: rgba(74, 144, 226, 0.3);
+  --color-blue-50: rgba(74, 144, 226, 0.5);
+  --color-blue-70: rgba(74, 144, 226, 0.7);
+  --color-blue-90: rgba(74, 144, 226, 0.9);
+  
+  --color-gold-10: rgba(255, 235, 100, 0.1);
+  --color-gold-20: rgba(255, 235, 100, 0.2);
+  --color-gold-30: rgba(255, 235, 100, 0.3);
+  --color-gold-50: rgba(255, 235, 100, 0.5);
+  --color-gold-70: rgba(255, 235, 100, 0.7);
+  --color-gold-90: rgba(255, 235, 100, 0.9);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Global Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-white);
+  line-height: 1.6;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+/* Utility Classes */
+.text-white { color: var(--color-white); }
+.text-black { color: var(--color-black); }
+.text-blue { color: var(--color-blue); }
+.text-gold { color: var(--color-gold); }
+.text-gray { color: var(--color-gray); }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+.bg-white { background-color: var(--color-white); }
+.bg-black { background-color: var(--color-black); }
+.bg-blue { background-color: var(--color-blue); }
+.bg-gold { background-color: var(--color-gold); }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+.border-white { border-color: var(--color-white); }
+.border-black { border-color: var(--color-black); }
+.border-blue { border-color: var(--color-blue); }
+.border-gold { border-color: var(--color-gold); }

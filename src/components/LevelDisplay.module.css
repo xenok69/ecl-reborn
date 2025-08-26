@@ -1,0 +1,296 @@
+/* Level Display Container */
+.LevelContainer {
+    display: flex;
+    gap: 1.5rem;
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 20px var(--color-black-30);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 240px;
+    align-items: stretch;
+}
+
+.LevelContainer:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px var(--color-black-50);
+}
+
+/* Video Section */
+.VideoSection {
+    flex: 0 0 420px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.VideoWrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio for better video display */
+    background: var(--color-black);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px var(--color-black-50);
+}
+
+.Video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.VideoPlaceholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-black-70);
+    color: var(--color-gray);
+    font-size: 1.1rem;
+}
+
+/* Info Section */
+.InfoSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    justify-content: space-between;
+}
+
+/* Level Title */
+.LevelTitle {
+    background: var(--color-black-30);
+    backdrop-filter: blur(8px);
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-white-10);
+}
+
+.LevelTitle h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-white);
+    text-shadow: 0 2px 4px var(--color-black-50);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+}
+
+/* Info Box */
+.InfoBox {
+    background: var(--color-black-30);
+    backdrop-filter: blur(8px);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-white-10);
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.InfoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.InfoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.InfoLabel {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.InfoValue {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-white);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+}
+
+.PointsValue {
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FF6347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.4));
+}
+
+/* Tags Container */
+.TagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.Tag {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--color-white-20);
+    background: var(--color-black-30);
+    color: var(--color-white);
+    transition: all 0.3s ease;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.Tag:hover {
+    border-color: var(--color-white-30);
+    background: var(--color-black-50);
+    transform: translateY(-1px);
+}
+
+/* Difficulty Tag */
+.DifficultyTag {
+    border-color: var(--color-error);
+    color: var(--color-error);
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.DifficultyTag:hover {
+    background: rgba(220, 38, 38, 0.2);
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
+}
+
+/* Gamemode Tag */
+.GamemodeTag {
+    border-color: var(--color-blue);
+    color: var(--color-blue);
+    background: var(--color-blue-10);
+}
+
+.GamemodeTag:hover {
+    background: var(--color-blue-20);
+    box-shadow: 0 0 15px var(--color-blue-30);
+}
+
+/* Decoration Tag */
+.DecorationTag {
+    border-color: var(--color-success);
+    color: var(--color-success);
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.DecorationTag:hover {
+    background: rgba(40, 167, 69, 0.2);
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Extra Tag */
+.ExtraTag {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.ExtraTag:hover {
+    background: rgba(255, 193, 7, 0.2);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .LevelContainer {
+        flex-direction: column;
+        gap: 0.75rem;
+        height: auto;
+        align-items: stretch;
+    }
+    
+    .VideoSection {
+        flex: none;
+        align-items: stretch;
+    }
+    
+    .VideoWrapper {
+        padding-bottom: 56.25%; /* Back to 16:9 for mobile */
+    }
+    
+    .InfoSection {
+        justify-content: flex-start;
+    }
+    
+    .InfoGrid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .LevelContainer {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .LevelTitle h2 {
+        font-size: 1.2rem;
+    }
+    
+    .LevelTitle {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .InfoBox {
+        padding: 0.5rem;
+    }
+    
+    .TagsContainer {
+        gap: 0.4rem;
+    }
+    
+    .Tag {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .LevelContainer {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .LevelTitle h2 {
+        font-size: 1.1rem;
+    }
+    
+    .InfoValue, .PointsValue {
+        font-size: 0.8rem;
+    }
+    
+    .InfoLabel {
+        font-size: 0.7rem;
+    }
+}
