@@ -23,13 +23,13 @@
         var(--color-white-10) 0%, 
         var(--color-gray) 30%,
         transparent 70%);
-    animation: rotateGlow 20s linear infinite;
+    animation: rotateGlow 4s ease-in-out alternate-reverse infinite;
     pointer-events: none;
 }
 
 @keyframes rotateGlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from { transform: rotate(-15deg); }
+    to { transform: rotate(15deg); }
 }
 
 /* Header Content Layout */
