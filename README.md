@@ -1,3 +1,0 @@
-# How to publish
-`npm run deploy` <- PUBLIC
-`npm run dev` <- CLIENT
