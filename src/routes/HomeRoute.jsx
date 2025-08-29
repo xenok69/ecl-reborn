@@ -1,8 +1,30 @@
 import { useAuth } from '../hooks/useAuth';
+import { useState, useEffect } from 'react';
 import styles from './HomeRoute.module.css';
 
 export default function HomeRoute() {
   const { user, isAuthenticated } = useAuth();
+  const [moderators, setModerators] = useState([]);
+
+  useEffect(() => {
+    const loadModerators = async () => {
+      try {
+        const response = await fetch('/moderators.json');
+        if (response.ok) {
+          const data = await response.json();
+          setModerators(data);
+        } else {
+          // Fallback to importing from src
+          const { default: moderatorsData } = await import('../data/moderators.json');
+          setModerators(moderatorsData);
+        }
+      } catch (error) {
+        console.error('Error loading moderators:', error);
+      }
+    };
+    
+    loadModerators();
+  }, []);
 
   return (
     <div className={styles.homeContainer}>
@@ -57,14 +79,18 @@ export default function HomeRoute() {
           <div className={styles.adminInfo}>
             <p><strong>Current Editors:</strong></p>
             <ul className={styles.editorList}>
-              <li className={styles.editorItem}>
-                <span className={styles.editorName}>xenok1</span>
-                <span className={styles.editorRole}>Primary Developer & Administrator</span>
-              </li>
+              {moderators.map((moderator, index) => (
+                <li key={index} className={styles.editorItem}>
+                  <span className={styles.editorName}>{moderator.username}</span>
+                  <span className={styles.editorRole}>{moderator.role}</span>
+                </li>
+              ))}
             </ul>
-            <p className={styles.adminNote}>
-              More editors will be added in the future as the platform grows.
-            </p>
+            {moderators.length === 0 && (
+              <p className={styles.adminNote}>
+                Loading editors...
+              </p>
+            )}
           </div>
         </section>
 

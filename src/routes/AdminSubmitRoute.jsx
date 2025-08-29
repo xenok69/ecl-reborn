@@ -76,7 +76,7 @@ export const adminSubmitAction = async ({ request }) => {
                 ? `Level "${levelName}" validated successfully! (Development Mode) 🧪`
                 : result.isGitHubPages
                 ? `Level "${levelName}" validated successfully! (GitHub Pages Mode) 📄`
-                : `Level "${levelName}" has been submitted to staging branch successfully! 🚀`,
+                : `Level "${levelName}" has been added to the main list successfully! 🚀`,
             data: result
         }
         
@@ -247,8 +247,8 @@ const addLevelToJson = async (levelData) => {
                 action: 'add_level',
                 levelData,
                 updatedData: currentData,
-                targetBranch: 'staging', // Push to staging instead of main
-                commitMessage: `Add level: ${levelData.levelName} at placement #${levelData.placement}`
+                targetBranch: 'main', // Push directly to main
+                commitMessage: `Added Level to data list: ${levelData.levelName}`
             })
         })
 

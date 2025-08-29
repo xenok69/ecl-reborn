@@ -9,7 +9,9 @@ import HomeRoute from "./routes/HomeRoute.jsx";
 import ChallengesRoute, { challengesLoader } from "./routes/ChallengesRoute.jsx";
 import SignInRoute from "./routes/SignInRoute.jsx";
 import AdminSubmitRoute, { adminSubmitAction } from "./routes/AdminSubmitRoute.jsx";
+import LeaderboardRoute from "./routes/LeaderboardRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -37,8 +39,9 @@ const router = createBrowserRouter([
       {
         path: "leaderboard/",
         element: (
-          <>
-          </>
+          <ProtectedRoute>
+            <LeaderboardRoute />
+          </ProtectedRoute>
         ),
       },
       {
@@ -47,7 +50,11 @@ const router = createBrowserRouter([
       },
       {
         path: "submit",
-        element: <AdminSubmitRoute />,
+        element: (
+          <AdminProtectedRoute>
+            <AdminSubmitRoute />
+          </AdminProtectedRoute>
+        ),
         action: adminSubmitAction,
       },
     ],

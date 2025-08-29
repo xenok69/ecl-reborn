@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
             throw new Error('Invalid JSON in request body')
         }
 
-        const { levelData, updatedData, targetBranch = 'staging', commitMessage } = parsedBody
+        const { levelData, updatedData, targetBranch = 'main', commitMessage } = parsedBody
 
         // Validate required environment variables
         if (!process.env.GITHUB_TOKEN) {
@@ -142,7 +142,7 @@ exports.handler = async (event, context) => {
             owner,
             repo,
             path: filePath,
-            message: commitMessage || `Add level: ${levelData.levelName} at placement #${levelData.placement}`,
+            message: commitMessage || `Added Level to data list: ${levelData.levelName}`,
             content: encodedContent,
             sha: currentFileSha,
             branch: targetBranch
