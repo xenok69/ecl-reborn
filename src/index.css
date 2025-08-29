@@ -90,6 +90,7 @@ body {
   background-color: var(--color-primary-dark);
   color: var(--color-primary-white);
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 /* Utility Classes */
@@ -108,3 +109,28 @@ body {
 .border-black { border-color: var(--color-black); }
 .border-blue { border-color: var(--color-blue); }
 .border-gold { border-color: var(--color-gold); }
+
+/* Mobile Responsive Utilities */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+  .show-desktop { display: block !important; }
+}
+
+/* Ensure text doesn't break out of containers on mobile */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  button, .button, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

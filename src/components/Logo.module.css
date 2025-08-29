@@ -95,24 +95,96 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-    .BrandSub {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
-    .LogoWrapper {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .Logo {
-        width: 28px;
-        height: 28px;
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* iPad/Tablet - keep all elements, slight reduction */
+    .LogoSection {
+        padding: 0.45rem 0.9rem;
+        gap: 0.9rem;
     }
     
     .BrandMain {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
+    }
+    
+    .BrandSub {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+    /* Small tablets - hide subtitle but keep main text */
+    .BrandSub {
+        display: none;
+    }
+    
+    .LogoSection {
+        padding: 0.4rem 0.8rem;
+        gap: 0.8rem;
+    }
+    
+    .BrandMain {
+        font-size: 1.35rem;
+    }
+}
+
+@media (max-width: 640px) and (min-width: 481px) {
+    /* Large phones */
+    .BrandSub {
+        display: none;
+    }
+    
+    .LogoSection {
+        padding: 0.35rem 0.7rem;
+        gap: 0.7rem;
+    }
+    
+    .BrandMain {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) and (min-width: 361px) {
+    /* Small phones */
+    .BrandSub {
+        display: none;
+    }
+    
+    .LogoWrapper {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .Logo {
+        width: 26px;
+        height: 26px;
+    }
+    
+    .Icon {
+        font-size: 26px;
+    }
+    
+    .BrandMain {
+        font-size: 1.1rem;
+    }
+    
+    .LogoSection {
+        padding: 0.25rem 0.5rem;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Very small phones - logo only */
+    .BrandText {
+        display: none;
+    }
+    
+    .BrandSub {
+        display: none;
+    }
+    
+    .LogoSection {
+        padding: 0.4rem;
+        gap: 0;
     }
 }

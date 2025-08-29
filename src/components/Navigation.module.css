@@ -78,16 +78,77 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* iPad/Tablet - keep labels but reduce spacing */
+    .Navigation {
+        gap: 0.4rem;
+        padding: 0.45rem;
+    }
+    
+    .NavItem {
+        padding: 0.65rem 1rem;
+    }
+    
+    .NavLabel {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+    /* Small tablets - hide labels, keep reasonable size */
     .NavLabel {
         display: none;
     }
     
     .NavItem {
-        padding: 0.75rem;
+        padding: 0.7rem;
+        min-width: 48px;
+    }
+    
+    .Navigation {
+        gap: 0.35rem;
+        padding: 0.45rem;
+    }
+}
+
+@media (max-width: 640px) and (min-width: 481px) {
+    /* Large phones */
+    .NavLabel {
+        display: none;
+    }
+    
+    .NavItem {
+        padding: 0.6rem;
+        min-width: 44px;
     }
     
     .Navigation {
         gap: 0.25rem;
+        padding: 0.4rem;
+    }
+    
+    .NavIcon {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Small phones */
+    .NavLabel {
+        display: none;
+    }
+    
+    .NavItem {
+        padding: 0.45rem;
+        min-width: 36px;
+    }
+    
+    .Navigation {
+        gap: 0.15rem;
+        padding: 0.25rem;
+    }
+    
+    .NavIcon {
+        font-size: 0.9rem;
     }
 }

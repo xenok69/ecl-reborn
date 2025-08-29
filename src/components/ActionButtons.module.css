@@ -136,8 +136,85 @@
 }
 
 /* Responsive Design */
-@media (max-width: 480px) {
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* iPad/Tablet - keep all elements, good spacing */
+    .Actions {
+        gap: 0.9rem;
+        padding: 0.45rem;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+    /* Small tablets - keep search, reduce spacing */
+    .Actions {
+        gap: 0.7rem;
+        padding: 0.4rem;
+    }
+    
+    .SearchBtn,
+    .ProfileBtn {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (max-width: 640px) and (min-width: 481px) {
+    /* Large phones - hide search */
     .SearchBtn {
         display: none;
+    }
+    
+    .Actions {
+        gap: 0.6rem;
+        padding: 0.35rem;
+    }
+    
+    .ProfileBtn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .SignInBtn {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) and (min-width: 361px) {
+    /* Small phones */
+    .SearchBtn {
+        display: none;
+    }
+    
+    .Actions {
+        gap: 0.4rem;
+        padding: 0.25rem;
+    }
+    
+    .ProfileBtn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .SignOutBtn {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .SignInBtn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Very small phones */
+    .SearchBtn {
+        display: none;
+    }
+    
+    .SignInBtn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
     }
 }

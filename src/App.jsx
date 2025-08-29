@@ -1,5 +1,6 @@
 import { Outlet } from "react-router"
 import Header from '/src/components/Header'
+import LoadingOverlay from '/src/components/LoadingOverlay'
 import { LoadingProvider } from '/src/components/LoadingContext'
 import { AuthProvider } from '/src/components/AuthContext'
 
@@ -12,6 +13,7 @@ export default function App() {
                 <main>
                     <Header />
                     <Outlet />
+                    <LoadingOverlay />
                 </main>
             </LoadingProvider>
         </AuthProvider>

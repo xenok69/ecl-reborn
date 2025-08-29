@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "pointsCalculation": {
+      "description": "Points are calculated based on placement where #1 gives 100 points and the last placement gives 1 point. Formula: points = 1 + (99 * (totalLevels - placement) / (totalLevels - 1))",
+      "maxPoints": 100,
+      "minPoints": 1
+    },
+    "lastUpdated": "2025-08-26"
+  },
+  "difficulties": {
+    "FREE": "Free",
+    "EASY": "Easy",
+    "NORMAL": "Normal",
+    "HARD": "Hard",
+    "HARDER": "Harder",
+    "INSANE": "Insane",
+    "EXTREME": "Extreme",
+    "GODLIKE": "Godlike"
+  },
+  "gamemodes": {
+    "MIXED": "Mixed",
+    "CUBE": "Cube",
+    "SHIP": "Ship",
+    "BALL": "Ball",
+    "UFO": "UFO",
+    "WAVE": "Wave",
+    "ROBOT": "Robot",
+    "SPIDER": "Spider",
+    "SWING": "Swing"
+  },
+  "decorationStyles": {
+    "EFFECT": "Effect",
+    "MODERN": "Modern",
+    "CLASSIC": "Classic",
+    "THEMED": "Themed",
+    "MINIMALIST": "Minimalist",
+    "OVERDECORATED": "Overdecorated",
+    "1.0": "1.0"
+  },
+  "extraTagTypes": {
+    "EPILEPSY": "Epilepsy",
+    "DUAL": "Dual",
+    "MEMORY": "Memory",
+    "TIMING": "Timing",
+    "CBF": "CBF",
+    "CAMERA_ABUSE": "Camera Abuse",
+    "SHADER_ABUSE": "Shader Abuse"
+  },
+  "levels": [
+    {
+      "placement": 1,
+      "levelName": "so CRACKED",
+      "creator": "MentosTeeGD",
+      "verifier": "xenok1",
+      "id": "103463023",
+      "youtubeVideoId": "YP06jhz3Jqo",
+      "tags": {
+        "difficulty": "Hard",
+        "gamemode": "Mixed",
+        "decorationStyle": "Effect",
+        "extraTags": ["Epilepsy"]
+      }
+    }
+  ]
+}

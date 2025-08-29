@@ -1,50 +1,16 @@
+import levelsData from './levels.json';
+
 export const metadata = {
   get totalLevels() {
     return levels.length;
   },
-  pointsCalculation: {
-    description:
-      "Points are calculated based on placement where #1 gives 100 points and the last placement gives 1 point. Formula: points = 1 + (99 * (totalLevels - placement) / (totalLevels - 1))",
-    maxPoints: 100,
-    minPoints: 1,
-  },
-  lastUpdated: "2025-08-26",
+  ...levelsData.metadata,
 };
 
-export const difficulties = {
-  INSANE: "Insane",
-  EXTREME: "Extreme",
-  LEGACY: "Legacy",
-};
-
-export const gamemodes = {
-  MIXED: "Mixed",
-  CUBE: "Cube",
-  SHIP: "Ship",
-  BALL: "Ball",
-  UFO: "UFO",
-  WAVE: "Wave",
-  ROBOT: "Robot",
-  SPIDER: "Spider",
-};
-
-export const decorationStyles = {
-  EFFECT: "Effect",
-  MODERN: "Modern",
-  CLASSIC: "Classic",
-  THEMED: "Themed",
-  MINIMALIST: "Minimalist",
-};
-
-export const extraTagTypes = {
-  EPILEPSY: "Epilepsy",
-  FLASHING: "Flashing",
-  DUAL: "Dual",
-  TRIPLE: "Triple",
-  MEMORY: "Memory",
-  TIMING: "Timing",
-  LDMOD: "LDMod",
-};
+export const difficulties = levelsData.difficulties;
+export const gamemodes = levelsData.gamemodes;
+export const decorationStyles = levelsData.decorationStyles;
+export const extraTagTypes = levelsData.extraTagTypes;
 
 const createLevel = (
   placement,
@@ -71,83 +37,13 @@ const createLevel = (
   description,
 });
 
-export const levels = [
-  createLevel(
-    1,
-    "so CRACKED",
-    "MentosTeeGD",
-    "xenok1",
-    "103463023",
-    "YP06jhz3Jqo",
-    {
-      difficulty: difficulties.INSANE,
-      gamemode: gamemodes.MIXED,
-      decorationStyle: decorationStyles.EFFECT,
-      extraTags: [extraTagTypes.EPILEPSY],
-    },
-    "An incredibly challenging level with intense mixed gameplay and stunning effects."
-  ),
-  createLevel(
-    2,
-    "so CRACKED",
-    "MentosTeeGD",
-    "xenok1",
-    "103463023",
-    "YP06jhz3Jqo",
-    {
-      difficulty: difficulties.INSANE,
-      gamemode: gamemodes.MIXED,
-      decorationStyle: decorationStyles.EFFECT,
-      extraTags: [extraTagTypes.EPILEPSY],
-    },
-    "An incredibly challenging level with intense mixed gameplay and stunning effects."
-  ),
-  createLevel(
-    3,
-    "so CRACKED",
-    "MentosTeeGD",
-    "xenok1",
-    "103463023",
-    "YP06jhz3Jqo",
-    {
-      difficulty: difficulties.INSANE,
-      gamemode: gamemodes.MIXED,
-      decorationStyle: decorationStyles.EFFECT,
-      extraTags: [extraTagTypes.EPILEPSY],
-    },
-    "An incredibly challenging level with intense mixed gameplay and stunning effects."
-  ),
-  createLevel(
-    4,
-    "so CRACKED",
-    "MentosTeeGD",
-    "xenok1",
-    "103463023",
-    "YP06jhz3Jqo",
-    {
-      difficulty: difficulties.INSANE,
-      gamemode: gamemodes.MIXED,
-      decorationStyle: decorationStyles.EFFECT,
-      extraTags: [extraTagTypes.EPILEPSY],
-    },
-    "An incredibly challenging level with intense mixed gameplay and stunning effects."
-  ),
-  createLevel(
-    5,
-    "so CRACKED",
-    "MentosTeeGD",
-    "xenok1",
-    "103463023",
-    "YP06jhz3Jqo",
-    {
-      difficulty: difficulties.INSANE,
-      gamemode: gamemodes.MIXED,
-      decorationStyle: decorationStyles.EFFECT,
-      extraTags: [extraTagTypes.EPILEPSY],
-    },
-    "An incredibly challenging level with intense mixed gameplay and stunning effects."
-  ),
-];
+export const levels = levelsData.levels.map(level => ({
+  ...level,
+  get points() {
+    if (metadata.totalLevels === 1) return 100;
+    return Math.round(1 + (99 * (metadata.totalLevels - level.placement) / (metadata.totalLevels - 1)));
+  },
+}));
 
 export const addLevel = (
   placement,

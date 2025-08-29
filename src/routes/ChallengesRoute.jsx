@@ -1,42 +1,33 @@
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { useParams, useLoaderData, useNavigation } from 'react-router'
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
-import { useLoading } from '../components/LoadingContext'
 import styles from './ChallengesRoute.module.css'
 
+export const challengesLoader = async ({ params }) => {
+    // Simulate the loading delay you had
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    const allLevels = getLevels()
+    return { 
+        levels: allLevels,
+        placement: params.placement 
+    }
+}
+
 export default function ChallengesRoute() {
-    const { placement } = useParams()
-    const [levels, setLevels] = useState([])
-    const [currentPage, setCurrentPage] = useState(1)
-    const [levelsPerPage] = useState(10)
-    const { setIsLoading } = useLoading()
-
-    useEffect(() => {
-        const loadLevels = async () => {
-            setIsLoading(true)
-            
-            try {
-                // Simulate loading delay for the header animation
-                await new Promise(resolve => setTimeout(resolve, 1000))
-                
-                const allLevels = getLevels()
-                setLevels(allLevels)
-                
-                // If placement is provided in URL, scroll to that level
-                if (placement) {
-                    const pageNumber = Math.ceil(parseInt(placement) / levelsPerPage)
-                    setCurrentPage(pageNumber)
-                }
-            } catch (error) {
-                console.error('Error loading levels:', error)
-            } finally {
-                setIsLoading(false)
-            }
+    const { levels, placement: urlPlacement } = useLoaderData()
+    const navigation = useNavigation()
+    const [currentPage, setCurrentPage] = useState(() => {
+        // If placement is provided in URL, calculate initial page
+        if (urlPlacement) {
+            return Math.ceil(parseInt(urlPlacement) / 10)
         }
-
-        loadLevels()
-    }, [placement, levelsPerPage, setIsLoading])
+        return 1
+    })
+    const [levelsPerPage] = useState(10)
+    
+    const isLoading = navigation.state === 'loading'
 
     // Calculate pagination
     const indexOfLastLevel = currentPage * levelsPerPage

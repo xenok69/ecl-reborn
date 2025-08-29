@@ -2,12 +2,16 @@ import styles from "./Header.module.css";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
 import ActionButtons from "./ActionButtons";
-import { useNavigate } from "react-router";
+import { useNavigate, useNavigation } from "react-router";
 import { useLoading } from "./LoadingContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { isLoading } = useLoading();
+  const navigation = useNavigation();
+  const { isLoading: contextLoading } = useLoading();
+  
+  // Show loading if either router navigation is happening OR context loading is true
+  const isLoading = navigation.state === 'loading' || contextLoading;
 
   const navItems = [
     { id: "home", label: "Home", icon: "🏠", path: "/ecl-reborn" },
