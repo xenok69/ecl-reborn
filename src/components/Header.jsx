@@ -1,5 +1,4 @@
 import styles from "./Header.module.css";
-import { useState } from "react";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
 import ActionButtons from "./ActionButtons";
@@ -8,7 +7,6 @@ import { useLoading } from "./LoadingContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState("home");
   const { isLoading } = useLoading();
 
   const navItems = [
@@ -29,7 +27,6 @@ export default function Header() {
   ];
 
   const handleLogoClick = () => {
-    setActiveNav("home");
     navigate("/ecl-reborn");
   };
 
@@ -50,8 +47,6 @@ export default function Header() {
 
         <Navigation
           navItems={navItems}
-          activeNav={activeNav}
-          onNavChange={setActiveNav}
         />
 
         <ActionButtons

@@ -31,7 +31,7 @@ export default function Navigation({ navItems, activeNav, onNavChange }) {
     if (path.includes("/challenges/")) return "challenges";
     if (path.includes("/leaderboard/")) return "leaderboard";
     if (path.includes("/about")) return "about";
-    return "home";
+    return null;
   };
 
   const [internalActiveNav, setInternalActiveNav] = useState(
