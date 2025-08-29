@@ -2,14 +2,19 @@ import levelsData from '../data/levels.js'
 
 /**
  * Calculate points based on placement
- * Formula: points = totalLevels - (placement - 1)
- * Where placement 1 = 100 points, placement 100 = 1 point
+ * Formula: points = 1 + (99 * (totalLevels - placement) / (totalLevels - 1))
+ * Where placement 1 = 100 points, last placement = 1 point
  */
 export function calculatePoints(placement, totalLevels = 100) {
     if (placement < 1 || placement > totalLevels) {
         throw new Error(`Placement must be between 1 and ${totalLevels}`)
     }
-    return totalLevels - (placement - 1)
+    
+    if (totalLevels === 1) {
+        return 100
+    }
+    
+    return Math.round(1 + (99 * (totalLevels - placement) / (totalLevels - 1)))
 }
 
 /**

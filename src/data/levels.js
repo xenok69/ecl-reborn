@@ -1,8 +1,10 @@
 export const metadata = {
-  totalLevels: 100,
+  get totalLevels() {
+    return levels.length;
+  },
   pointsCalculation: {
     description:
-      "Points are calculated based on placement where #1 gives 100 points and the last placement gives 1 point. Formula: points = totalLevels - (placement - 1)",
+      "Points are calculated based on placement where #1 gives 100 points and the last placement gives 1 point. Formula: points = 1 + (99 * (totalLevels - placement) / (totalLevels - 1))",
     maxPoints: 100,
     minPoints: 1,
   },
@@ -61,7 +63,10 @@ const createLevel = (
   id,
   youtubeVideoId,
   tags,
-  points: metadata.totalLevels - (placement - 1),
+  get points() {
+    if (metadata.totalLevels === 1) return 100;
+    return Math.round(1 + (99 * (metadata.totalLevels - placement) / (metadata.totalLevels - 1)));
+  },
   addedDate: "2025-08-26",
   description,
 });

@@ -1,0 +1,167 @@
+.signInContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 2rem 2rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.signInCard {
+  background: var(--color-black-50);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-white-10);
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 8px 32px var(--color-black-30);
+  position: relative;
+  overflow: hidden;
+}
+
+.signInCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-white-30), transparent);
+}
+
+.cardHeader {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, var(--color-white) 0%, var(--color-near-white) 50%, var(--color-white) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4px 12px var(--color-white-30);
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--color-gray);
+  line-height: 1.5;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.cardContent {
+  margin-bottom: 2rem;
+}
+
+.discordButton {
+  width: 100%;
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.discordButton:hover:not(:disabled) {
+  background: #4752C4;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--color-blue-30);
+}
+
+.discordButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.discordButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buttonContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.discordIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.buttonText {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.cardFooter {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-white-10);
+}
+
+.footerText {
+  font-size: 0.875rem;
+  color: var(--color-gray);
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .signInContainer {
+    padding: 90px 1.5rem 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .signInContainer {
+    padding: 80px 1rem 2rem 1rem;
+  }
+  
+  .signInCard {
+    padding: 2rem 1.5rem;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .signInContainer {
+    padding: 70px 0.75rem 1rem 0.75rem;
+  }
+  
+  .signInCard {
+    padding: 2rem 1.5rem;
+    margin: 0;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+}

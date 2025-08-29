@@ -10,6 +10,13 @@
     box-shadow: 0 2px 10px var(--color-black-30);
 }
 
+.ProfileContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .SearchBtn {
     display: flex;
     align-items: center;
@@ -69,11 +76,58 @@
     right: -2px;
     width: 12px;
     height: 12px;
-    background: var(--color-white);
     border: 2px solid var(--color-black);
     border-radius: 50%;
-    animation: onlinePulse 2s ease-in-out infinite;
     box-shadow: 0 0 10px var(--color-white-50);
+    transition: all 0.3s ease;
+}
+
+.OnlineIndicator.Online {
+    background: var(--color-success);
+    animation: onlinePulse 2s ease-in-out infinite;
+}
+
+.OnlineIndicator.Offline {
+    background: var(--color-gray);
+}
+
+.SignOutBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--color-error);
+    border: none;
+    border-radius: 8px;
+    color: var(--color-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.8;
+}
+
+.SignOutBtn:hover {
+    opacity: 1;
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+.SignInBtn {
+    padding: 0.5rem 1rem;
+    background: var(--color-blue);
+    border: 1px solid var(--color-blue-dark);
+    border-radius: 8px;
+    color: var(--color-white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.SignInBtn:hover {
+    background: var(--color-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-blue-30);
 }
 
 @keyframes onlinePulse {

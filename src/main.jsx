@@ -6,6 +6,8 @@ import "./index.css";
 import App from "./App.jsx";
 import Header from "./components/Header.jsx";
 import ChallengesRoute from "./routes/ChallengesRoute.jsx";
+import SignInRoute from "./routes/SignInRoute.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -17,16 +19,24 @@ const router = createBrowserRouter([
         element: <></>,
       },
       {
-        path: "challenges/",
-        element: <ChallengesRoute />,
+        path: "signin",
+        element: <SignInRoute />,
       },
       {
-        path: "challenges/:placement",
-        element: <ChallengesRoute />,
+        path: "challenges/",
+        element: (
+          <ProtectedRoute>
+            <ChallengesRoute />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "leaderboard/",
-        element: <></>,
+        element: (
+          <ProtectedRoute>
+            <></>
+          </ProtectedRoute>
+        ),
       },
       {
         path: "about/",
