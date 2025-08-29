@@ -43,7 +43,7 @@ export default function HomeRoute() {
             ) : (
               <div className={styles.signInPrompt}>
                 <p>Sign in with Discord to start exploring challenges and tracking your progress.</p>
-                <a href="/ecl-reborn/signin" className={styles.ctaButton}>
+                <a href="/signin" className={styles.ctaButton}>
                   Sign In
                 </a>
               </div>

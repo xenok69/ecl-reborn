@@ -13,7 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const router = createBrowserRouter([
   {
-    path: "/ecl-reborn",
+    path: "/",
     element: <App />,
     children: [
       {
