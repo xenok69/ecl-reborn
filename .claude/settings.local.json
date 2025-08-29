@@ -4,7 +4,11 @@
       "WebSearch",
       "WebFetch(domain:discord.com)",
       "WebFetch(domain:stackoverflow.com)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "WebFetch(domain:xenok69.github.io)",
+      "WebFetch(domain:xenok69.github.io)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

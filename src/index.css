@@ -33,7 +33,14 @@
   --color-error: #DC3545;
   --color-info: var(--color-blue);
   
+  /* Additional Colors */
+  --color-green: #28A745;
+  --color-green-light: #5CB85C;
+  --color-purple: #8E44AD;
+  --color-purple-light: #A569BD;
+  
   /* Transparent Variants */
+  --color-white-05: rgba(255, 255, 255, 0.05);
   --color-white-10: rgba(255, 255, 255, 0.1);
   --color-white-20: rgba(255, 255, 255, 0.2);
   --color-white-30: rgba(255, 255, 255, 0.3);
@@ -61,6 +68,14 @@
   --color-gold-50: rgba(255, 235, 100, 0.5);
   --color-gold-70: rgba(255, 235, 100, 0.7);
   --color-gold-90: rgba(255, 235, 100, 0.9);
+  
+  --color-green-10: rgba(40, 167, 69, 0.1);
+  --color-green-20: rgba(40, 167, 69, 0.2);
+  --color-green-30: rgba(40, 167, 69, 0.3);
+  
+  --color-purple-10: rgba(142, 68, 173, 0.1);
+  --color-purple-20: rgba(142, 68, 173, 0.2);
+  --color-purple-30: rgba(142, 68, 173, 0.3);
 }
 
 /* Global Reset and Base Styles */
