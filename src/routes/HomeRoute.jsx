@@ -76,7 +76,7 @@ export default function HomeRoute() {
             while maintaining the essence of the original project.
           </p>
           <a 
-            href="https://xenok69.github.io/ECL/MainList.html" 
+            href="https://ecl-reborn.netlify.app" 
             target="_blank" 
             rel="noopener noreferrer" 
             className={styles.legacyLink}

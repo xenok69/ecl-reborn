@@ -4,11 +4,17 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA routing - catch all routes and serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
 
 [functions]
