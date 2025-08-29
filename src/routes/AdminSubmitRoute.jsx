@@ -143,9 +143,74 @@ export const adminSubmitAction = async ({ request }) => {
 
 const addLevelToJson = async (levelData) => {
     try {
-        // Read current levels.json
-        const response = await fetch('./src/data/levels.json')
-        const currentData = await response.json()
+        // Read current levels.json - try multiple paths
+        const possiblePaths = [
+            './src/data/levels.json',
+            '/src/data/levels.json',
+            '../data/levels.json',
+            './data/levels.json'
+        ]
+        
+        let response, responseText, currentData
+        let lastError
+        
+        for (const path of possiblePaths) {
+            try {
+                console.log('📖 Trying to fetch levels.json from:', path)
+                response = await fetch(path)
+                
+                if (response.ok) {
+                    console.log('✅ Found levels.json at:', path)
+                    break
+                } else {
+                    console.log('❌ Not found at:', path, 'Status:', response.status)
+                    lastError = `HTTP ${response.status} at ${path}`
+                }
+            } catch (err) {
+                console.log('❌ Error fetching from:', path, err.message)
+                lastError = err.message
+            }
+        }
+        
+        if (!response || !response.ok) {
+            // Fallback: use the data directly from the imported module
+            console.log('⚠️ Cannot fetch levels.json, using imported data as fallback')
+            try {
+                const { levels: importedLevels, metadata, difficulties, gamemodes, decorationStyles, extraTagTypes } = await import('../data/levels.js')
+                currentData = {
+                    metadata: {
+                        ...metadata,
+                        get totalLevels() { return importedLevels.length }
+                    },
+                    difficulties,
+                    gamemodes, 
+                    decorationStyles,
+                    extraTagTypes,
+                    levels: importedLevels
+                }
+                console.log('✅ Using imported levels data:', currentData.levels.length, 'levels')
+            } catch (importError) {
+                console.error('❌ Cannot import levels.js either:', importError)
+                throw new Error(`Cannot load levels data: ${lastError || importError.message}`)
+            }
+        } else {
+            console.log('📄 Response status:', response.status)
+            console.log('📄 Response headers:', Object.fromEntries(response.headers))
+            
+            // Get the raw text first to debug JSON issues
+            responseText = await response.text()
+            console.log('📝 Raw levels.json content (first 200 chars):', responseText.substring(0, 200))
+            
+            // Try to parse as JSON
+            try {
+                currentData = JSON.parse(responseText)
+                console.log('✅ Successfully parsed levels.json')
+            } catch (parseError) {
+                console.error('❌ JSON parse error in levels.json:', parseError)
+                console.error('📄 Full response text:', responseText)
+                throw new Error(`levels.json contains invalid JSON: ${parseError.message}`)
+            }
+        }
         
         const newPlacement = levelData.placement
         
