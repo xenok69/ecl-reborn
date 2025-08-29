@@ -37,21 +37,9 @@ export const adminSubmitAction = async ({ request }) => {
         errors.placement = 'Placement must be a number'
     }
 
-    // Validate video (either YouTube ID or file)
-    if (!youtubeVideoId && (!videoFile || videoFile.size === 0)) {
-        errors.video = 'Either YouTube video ID or video file is required'
-    }
-
-    // Validate file if provided
-    if (videoFile && videoFile.size > 0) {
-        const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/mov']
-        if (!allowedTypes.includes(videoFile.type)) {
-            errors.videoFile = 'Please select a valid video file (MP4, WebM, OGG, MOV)'
-        }
-        
-        if (videoFile.size > 100 * 1024 * 1024) {
-            errors.videoFile = 'File size must be less than 100MB'
-        }
+    // Validate video (YouTube ID only for now - file uploads disabled due to Netlify limitations)
+    if (!youtubeVideoId) {
+        errors.video = 'YouTube video ID is required'
     }
 
     if (Object.keys(errors).length > 0) {
@@ -59,50 +47,8 @@ export const adminSubmitAction = async ({ request }) => {
     }
 
     try {
-        // Handle file upload if video file is provided
+        // Use YouTube video ID directly (file upload disabled due to Netlify limitations)
         let videoPath = youtubeVideoId
-        
-        if (videoFile && videoFile.size > 0) {
-            // Upload file to server first
-            const fileFormData = new FormData()
-            fileFormData.append('videoFile', videoFile)
-            fileFormData.append('levelName', levelName)
-            
-            const uploadResponse = await fetch('/.netlify/functions/upload-video', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${getAuthToken()}`
-                },
-                body: fileFormData
-            })
-
-            if (!uploadResponse.ok) {
-                let uploadError
-                try {
-                    const errorText = await uploadResponse.text()
-                    uploadError = errorText ? JSON.parse(errorText) : { message: 'Upload failed' }
-                } catch (parseError) {
-                    uploadError = { message: 'Failed to upload video file - server error' }
-                }
-                return {
-                    success: false,
-                    errors: { videoFile: uploadError.message || 'Failed to upload video file' }
-                }
-            }
-
-            let uploadResult
-            try {
-                const uploadText = await uploadResponse.text()
-                uploadResult = JSON.parse(uploadText)
-            } catch (parseError) {
-                console.error('Error parsing upload response:', parseError)
-                return {
-                    success: false,
-                    errors: { videoFile: 'Invalid response from upload server' }
-                }
-            }
-            videoPath = uploadResult.filePath // Server returns the path where file was stored
-        }
         
         // Prepare level data
         const levelData = {
@@ -489,32 +435,24 @@ export default function AdminSubmitRoute() {
                     
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            YouTube Video ID
+                            YouTube Video ID *
                             <input
                                 type="text"
                                 name="youtubeVideoId"
-                                className={styles.Input}
+                                className={`${styles.Input} ${actionData?.errors?.video ? styles.Error : ''}`}
                                 placeholder="Enter YouTube video ID (e.g., dQw4w9WgXcQ)"
+                                required
                             />
+                            <div className={styles.FileInputHint}>
+                                💡 Extract the video ID from the YouTube URL. For example: https://youtube.com/watch?v=<strong>dQw4w9WgXcQ</strong>
+                            </div>
                         </label>
                     </div>
 
-                    <div className={styles.Divider}>OR</div>
-
                     <div className={styles.FormGroup}>
-                        <label className={styles.Label}>
-                            Upload Video File
-                            <input
-                                type="file"
-                                name="videoFile"
-                                className={`${styles.FileInput} ${actionData?.errors?.videoFile ? styles.Error : ''}`}
-                                accept="video/*"
-                            />
-                            {actionData?.errors?.videoFile && <span className={styles.ErrorText}>{actionData.errors.videoFile}</span>}
-                            <div className={styles.FileInputHint}>
-                                Supported formats: MP4, WebM, OGG, MOV (max 100MB)
-                            </div>
-                        </label>
+                        <div className={styles.FileInputHint} style={{fontStyle: 'italic', color: '#666'}}>
+                            📹 File uploads are currently disabled due to hosting limitations. Please use YouTube links only.
+                        </div>
                     </div>
                 </fieldset>
 
