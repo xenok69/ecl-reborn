@@ -12,14 +12,14 @@ export default function ActionButtons({ onSearchClick, onProfileClick, profileIn
                 onProfileClick();
             }
         } else {
-            navigate('/ecl-reborn/signin');
+            navigate('/signin');
         }
     };
 
     const handleSignOut = (e) => {
         e.stopPropagation();
         signOut();
-        navigate('/ecl-reborn');
+        navigate('/');
     };
 
     const getProfileInitial = () => {
@@ -54,7 +54,7 @@ export default function ActionButtons({ onSearchClick, onProfileClick, profileIn
                     </button>
                 </div>
             ) : (
-                <button className={styles.SignInBtn} onClick={() => navigate('/ecl-reborn/signin')}>
+                <button className={styles.SignInBtn} onClick={() => navigate('/signin')}>
                     Sign In
                 </button>
             )}

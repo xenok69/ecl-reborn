@@ -14,24 +14,24 @@ export default function Header() {
   const isLoading = navigation.state === 'loading' || contextLoading;
 
   const navItems = [
-    { id: "home", label: "Home", icon: "🏠", path: "/ecl-reborn" },
+    { id: "home", label: "Home", icon: "🏠", path: "/" },
     {
       id: "challenges",
       label: "Challenges",
       icon: "⚡",
-      path: "/ecl-reborn/challenges/",
+      path: "/challenges/",
     },
     {
       id: "leaderboard",
       label: "Leaderboard",
       icon: "🏆",
-      path: "/ecl-reborn/leaderboard/",
+      path: "/leaderboard/",
     },
-    { id: "about", label: "About", icon: "✨", path: "/ecl-reborn/about/" },
+    { id: "about", label: "About", icon: "✨", path: "/about/" },
   ];
 
   const handleLogoClick = () => {
-    navigate("/ecl-reborn");
+    navigate("/");
   };
 
   const handleSearchClick = () => {

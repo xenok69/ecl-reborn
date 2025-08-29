@@ -7,27 +7,27 @@ export default function Navigation({ navItems, activeNav, onNavChange }) {
   const location = useLocation();
 
   const defaultNavItems = [
-    { id: "home", label: "Home", icon: "🏠", path: "/ecl-reborn" },
+    { id: "home", label: "Home", icon: "🏠", path: "/" },
     {
       id: "challenges",
       label: "Challenges",
       icon: "⚡",
-      path: "/ecl-reborn/challenges/",
+      path: "/challenges/",
     },
     {
       id: "leaderboard",
       label: "Leaderboard",
       icon: "🏆",
-      path: "/ecl-reborn/leaderboard/",
+      path: "/leaderboard/",
     },
-    { id: "about", label: "About", icon: "✨", path: "/ecl-reborn/about/" },
+    { id: "about", label: "About", icon: "✨", path: "/about/" },
   ];
 
   const items = navItems || defaultNavItems;
 
   const getActiveNavFromPath = () => {
     const path = location.pathname;
-    if (path === "/ecl-reborn" || path === "/ecl-reborn/") return "home";
+    if (path === "/" || path === "/") return "home";
     if (path.includes("/challenges/")) return "challenges";
     if (path.includes("/leaderboard/")) return "leaderboard";
     if (path.includes("/about")) return "about";

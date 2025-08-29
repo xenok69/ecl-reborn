@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router';
 import { useLoading } from './LoadingContext';
 import { useEffect } from 'react';
 
-export default function ProtectedRoute({ children, fallback = null, redirectTo = '/ecl-reborn/signin' }) {
+export default function ProtectedRoute({ children, fallback = null, redirectTo = '/signin' }) {
   const { isAuthenticated, isLoading } = useAuth();
   const { setIsLoading } = useLoading();
   const location = useLocation();
