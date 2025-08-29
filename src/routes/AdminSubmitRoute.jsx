@@ -202,6 +202,12 @@ const addLevelToJson = async (levelData) => {
         
         const isGitHubPages = window.location.hostname.includes('github.io')
         
+        console.log('🔍 Environment check:')
+        console.log('Hostname:', window.location.hostname)
+        console.log('isDevelopment:', isDevelopment)
+        console.log('isGitHubPages:', isGitHubPages)
+        console.log('Should bypass:', isDevelopment || isGitHubPages)
+        
         if (isDevelopment || isGitHubPages) {
             // GitHub Pages / Development fallback - just log the data and simulate success
             console.log('🚧 GITHUB PAGES / DEV MODE - Netlify functions not available')
@@ -219,6 +225,12 @@ const addLevelToJson = async (levelData) => {
                 isDevelopment: true,
                 isGitHubPages: isGitHubPages
             }
+        }
+
+        // Final safety check - should never reach here on GitHub Pages
+        if (window.location.hostname.includes('github.io')) {
+            console.error('🚨 ERROR: Attempting to call Netlify function on GitHub Pages!')
+            throw new Error('Cannot call Netlify functions on GitHub Pages. Deploy to Netlify for full functionality.')
         }
 
         // Send to backend API for staging branch update
