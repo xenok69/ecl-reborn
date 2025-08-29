@@ -9,6 +9,11 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
     }
 
+    // Debug logging
+    console.log('HTTP Method:', event.httpMethod)
+    console.log('Headers:', event.headers)
+    console.log('Event:', JSON.stringify(event, null, 2))
+
     // Handle preflight OPTIONS request
     if (event.httpMethod === 'OPTIONS') {
         return {
@@ -20,10 +25,15 @@ exports.handler = async (event, context) => {
 
     // Only allow POST requests
     if (event.httpMethod !== 'POST') {
+        console.error(`Method not allowed: ${event.httpMethod}`)
         return {
             statusCode: 405,
             headers,
-            body: JSON.stringify({ error: 'Method not allowed' })
+            body: JSON.stringify({ 
+                error: 'Method not allowed',
+                method: event.httpMethod,
+                allowedMethods: ['POST', 'OPTIONS']
+            })
         }
     }
 
