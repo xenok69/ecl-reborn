@@ -74,6 +74,8 @@ export const adminSubmitAction = async ({ request }) => {
             success: true, 
             message: result.isDevelopment 
                 ? `Level "${levelName}" validated successfully! (Development Mode) 🧪`
+                : result.isGitHubPages
+                ? `Level "${levelName}" validated successfully! (GitHub Pages Mode) 📄`
                 : `Level "${levelName}" has been submitted to staging branch successfully! 🚀`,
             data: result
         }
@@ -192,15 +194,17 @@ const addLevelToJson = async (levelData) => {
         // Update lastUpdated
         currentData.metadata.lastUpdated = new Date().toISOString().split('T')[0]
         
-        // Check if we're in development mode
+        // Check if we're in development mode or on GitHub Pages
         const isDevelopment = window.location.hostname === 'localhost' || 
                              window.location.hostname === '127.0.0.1' ||
                              window.location.port === '5173' ||
                              import.meta.env.DEV
         
-        if (isDevelopment) {
-            // Development fallback - just log the data and simulate success
-            console.log('🚧 DEVELOPMENT MODE - Netlify functions not available')
+        const isGitHubPages = window.location.hostname.includes('github.io')
+        
+        if (isDevelopment || isGitHubPages) {
+            // GitHub Pages / Development fallback - just log the data and simulate success
+            console.log('🚧 GITHUB PAGES / DEV MODE - Netlify functions not available')
             console.log('📝 Level data that would be submitted:')
             console.log('Level:', levelData)
             console.log('Updated levels.json:', JSON.stringify(currentData, null, 2))
@@ -210,9 +214,10 @@ const addLevelToJson = async (levelData) => {
             
             return {
                 success: true,
-                message: `Level "${levelData.levelName}" would be submitted to staging branch (development mode)`,
+                message: `Level "${levelData.levelName}" validated successfully! (GitHub Pages - no backend submission) 📄`,
                 data: { levelData, updatedData: currentData },
-                isDevelopment: true
+                isDevelopment: true,
+                isGitHubPages: isGitHubPages
             }
         }
 
@@ -338,6 +343,19 @@ export default function AdminSubmitRoute() {
                 <p className={styles.Subtitle}>
                     Review and approve levels submitted for the Eclipse Challenge List
                 </p>
+                {window.location.hostname.includes('github.io') && (
+                    <div style={{
+                        background: '#fff3cd',
+                        border: '1px solid #ffeaa7',
+                        borderRadius: '4px',
+                        padding: '12px',
+                        margin: '16px 0',
+                        color: '#856404'
+                    }}>
+                        📄 <strong>GitHub Pages Mode:</strong> Form validation only - no backend submission available. 
+                        Deploy to Netlify to enable full functionality.
+                    </div>
+                )}
             </div>
 
             {actionData?.message && (
