@@ -77,14 +77,30 @@ export const adminSubmitAction = async ({ request }) => {
             })
 
             if (!uploadResponse.ok) {
-                const uploadError = await uploadResponse.json()
+                let uploadError
+                try {
+                    const errorText = await uploadResponse.text()
+                    uploadError = errorText ? JSON.parse(errorText) : { message: 'Upload failed' }
+                } catch (parseError) {
+                    uploadError = { message: 'Failed to upload video file - server error' }
+                }
                 return {
                     success: false,
                     errors: { videoFile: uploadError.message || 'Failed to upload video file' }
                 }
             }
 
-            const uploadResult = await uploadResponse.json()
+            let uploadResult
+            try {
+                const uploadText = await uploadResponse.text()
+                uploadResult = JSON.parse(uploadText)
+            } catch (parseError) {
+                console.error('Error parsing upload response:', parseError)
+                return {
+                    success: false,
+                    errors: { videoFile: 'Invalid response from upload server' }
+                }
+            }
             videoPath = uploadResult.filePath // Server returns the path where file was stored
         }
         
@@ -277,11 +293,18 @@ const addLevelToJson = async (levelData) => {
         console.log('Response headers:', Object.fromEntries(result.headers))
 
         // Get response text first to debug
-        const responseText = await result.text()
-        console.log('Raw response:', responseText)
+        const resultText = await result.text()
+        console.log('Raw response:', resultText)
+        console.log('Response length:', resultText.length)
+
+        // Check for empty response
+        if (!resultText || resultText.trim() === '') {
+            console.error('❌ Received empty response from Netlify function')
+            throw new Error('Netlify function returned empty response. Check function deployment and logs.')
+        }
 
         // Check if response looks like HTML (Netlify error page)
-        if (responseText.includes('<html') || responseText.includes('<!DOCTYPE')) {
+        if (resultText.includes('<html') || resultText.includes('<!DOCTYPE')) {
             console.error('❌ Received HTML instead of JSON - likely a Netlify function error')
             throw new Error('Netlify function returned HTML error page. Check function deployment and environment variables.')
         }
@@ -289,11 +312,12 @@ const addLevelToJson = async (levelData) => {
         // Try to parse as JSON
         let responseData
         try {
-            responseData = JSON.parse(responseText)
+            responseData = JSON.parse(resultText)
         } catch (parseError) {
             console.error('JSON parse error:', parseError)
-            console.error('Response was:', responseText)
-            throw new Error(`Server returned invalid JSON. Response: ${responseText.substring(0, 200)}...`)
+            console.error('Response was:', resultText)
+            console.error('First 10 characters:', JSON.stringify(resultText.substring(0, 10)))
+            throw new Error(`Server returned invalid JSON. Response: ${resultText.substring(0, 200)}...`)
         }
 
         if (!result.ok) {

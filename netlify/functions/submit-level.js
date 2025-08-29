@@ -27,8 +27,21 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // Parse the request body
-        const { levelData, updatedData, targetBranch = 'staging', commitMessage } = JSON.parse(event.body)
+        // Validate and parse the request body
+        if (!event.body) {
+            throw new Error('Request body is missing')
+        }
+
+        let parsedBody
+        try {
+            parsedBody = JSON.parse(event.body)
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError)
+            console.error('Request body:', event.body)
+            throw new Error('Invalid JSON in request body')
+        }
+
+        const { levelData, updatedData, targetBranch = 'staging', commitMessage } = parsedBody
 
         // Validate required environment variables
         if (!process.env.GITHUB_TOKEN) {
