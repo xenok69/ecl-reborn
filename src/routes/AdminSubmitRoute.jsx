@@ -109,10 +109,10 @@ const addLevelToJson = async (levelData) => {
     try {
         // Read current levels.json - try multiple paths
         const possiblePaths = [
+            '/levels.json',
+            './levels.json',
             './src/data/levels.json',
-            '/src/data/levels.json',
-            '../data/levels.json',
-            './data/levels.json'
+            '/src/data/levels.json'
         ]
         
         let response, responseText, currentData
