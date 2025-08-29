@@ -10,8 +10,16 @@ export default function ProtectedRoute({ children, fallback = null, redirectTo =
 
   useEffect(() => {
     setIsLoading(isLoading);
+    
+    // Clean up loading state when component unmounts or auth resolves
+    return () => {
+      if (!isLoading) {
+        setIsLoading(false);
+      }
+    };
   }, [isLoading, setIsLoading]);
 
+  // Wait for auth to resolve before rendering anything
   if (isLoading) {
     return null;
   }

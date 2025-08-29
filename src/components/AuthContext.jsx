@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
             const parsedUser = JSON.parse(savedUser);
             // Set user optimistically first
             setUser(parsedUser);
+            setIsLoading(false);
             // Then validate in the background
             validateUser(parsedUser).then(isValid => {
               if (!isValid) {
@@ -52,10 +53,12 @@ export const AuthProvider = ({ children }) => {
           } catch (error) {
             console.error('Error parsing saved user data:', error);
             localStorage.removeItem('ecl-user');
+            setIsLoading(false);
           }
+        } else {
+          setIsLoading(false);
         }
       }
-      setIsLoading(false);
     };
 
     handleDiscordCallback();
