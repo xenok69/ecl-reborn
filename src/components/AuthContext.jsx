@@ -36,11 +36,19 @@ export const AuthProvider = ({ children }) => {
         if (savedUser) {
           try {
             const parsedUser = JSON.parse(savedUser);
-            if (await validateUser(parsedUser)) {
-              setUser(parsedUser);
-            } else {
+            // Set user optimistically first
+            setUser(parsedUser);
+            // Then validate in the background
+            validateUser(parsedUser).then(isValid => {
+              if (!isValid) {
+                setUser(null);
+                localStorage.removeItem('ecl-user');
+              }
+            }).catch(error => {
+              console.error('Error validating user:', error);
+              setUser(null);
               localStorage.removeItem('ecl-user');
-            }
+            });
           } catch (error) {
             console.error('Error parsing saved user data:', error);
             localStorage.removeItem('ecl-user');
