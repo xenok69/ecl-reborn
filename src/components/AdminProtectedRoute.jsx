@@ -22,13 +22,15 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
   }, [isLoading, isCheckingAdmin, setIsLoading]);
 
   useEffect(() => {
-    if (user && isAuthenticated) {
+    if (isAuthenticated && user) {
       const userIsModerator = moderatorsData.some(moderator => moderator.id === user.id);
       setIsAdmin(userIsModerator);
-    } else {
+      setIsCheckingAdmin(false);
+    } else if (!isAuthenticated) {
       setIsAdmin(false);
+      setIsCheckingAdmin(false);
     }
-    setIsCheckingAdmin(false);
+    // Don't set isCheckingAdmin to false if we're still loading authentication
   }, [user, isAuthenticated]);
 
   console.log('🔍 AdminProtectedRoute Debug:');
@@ -52,7 +54,9 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  if (!isAdmin) {
+  // Only redirect if we're sure the user is authenticated but not admin
+  // Don't redirect during the initial loading phase
+  if (isAuthenticated && !isAdmin) {
     console.log('❌ Redirecting to home - not admin, isAdmin:', isAdmin);
     return <Navigate to="/" replace />;
   }
