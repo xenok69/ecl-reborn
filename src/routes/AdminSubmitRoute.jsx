@@ -210,11 +210,23 @@ const deleteLevelFromJson = async (levelId) => {
         }
         
         // Find the level to delete
-        const levelIndex = currentData.levels.findIndex(level => level.id === levelId)
+        console.log('🔍 Looking for level with ID:', levelId, 'Type:', typeof levelId)
+        console.log('📝 Available level IDs:', currentData.levels.map(l => ({ id: l.id, type: typeof l.id })))
+        
+        const levelIndex = currentData.levels.findIndex(level => {
+            // Ensure both IDs are strings for comparison
+            const normalizedLevelId = String(level.id)
+            const normalizedSearchId = String(levelId)
+            console.log(`Comparing: "${normalizedLevelId}" === "${normalizedSearchId}"`, normalizedLevelId === normalizedSearchId)
+            return normalizedLevelId === normalizedSearchId
+        })
         
         if (levelIndex === -1) {
+            console.error('❌ Level not found. Available levels:', currentData.levels.map(l => l.id))
             throw new Error(`Level with ID ${levelId} not found for deletion`)
         }
+        
+        console.log('✅ Found level at index:', levelIndex)
         
         const levelToDelete = currentData.levels[levelIndex]
         const deletedPlacement = levelToDelete.placement
@@ -388,11 +400,21 @@ const addLevelToJson = async (levelData, isEditMode = false, originalLevelId = n
         
         if (isEditMode && originalLevelId) {
             // Find the original level being edited
-            const originalLevelIndex = currentData.levels.findIndex(level => level.id === originalLevelId)
+            console.log('🔍 Looking for original level with ID:', originalLevelId, 'Type:', typeof originalLevelId)
+            
+            const originalLevelIndex = currentData.levels.findIndex(level => {
+                // Ensure both IDs are strings for comparison
+                const normalizedLevelId = String(level.id)
+                const normalizedSearchId = String(originalLevelId)
+                return normalizedLevelId === normalizedSearchId
+            })
             
             if (originalLevelIndex === -1) {
+                console.error('❌ Original level not found. Available levels:', currentData.levels.map(l => l.id))
                 throw new Error(`Level with ID ${originalLevelId} not found for editing`)
             }
+            
+            console.log('✅ Found original level at index:', originalLevelIndex)
             
             const originalLevel = currentData.levels[originalLevelIndex]
             const oldPlacement = originalLevel.placement
