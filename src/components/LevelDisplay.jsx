@@ -18,10 +18,10 @@ export default function LevelDisplay({
         <div className={styles.VideoWrapper}>
           {youtubeVideoId ? (
             <iframe
-              src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+              src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
               title={`${levelName} - Geometry Dash Level`}
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="fullscreen"
               allowFullScreen
               className={styles.Video}
             />
