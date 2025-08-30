@@ -21,9 +21,11 @@ export default function LevelDisplay({
               src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
               title={`${levelName} - Geometry Dash Level`}
               frameBorder="0"
-              allow="fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className={styles.Video}
+              referrerPolicy="strict-origin-when-cross-origin"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
             />
           ) : (
             <div className={styles.VideoPlaceholder}>
