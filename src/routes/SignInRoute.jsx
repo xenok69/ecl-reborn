@@ -6,7 +6,7 @@ export default function SignInRoute() {
   const { user, signInWithDiscord, isLoading } = useAuth();
 
   if (user) {
-    return <Navigate to="/ecl-reborn" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
