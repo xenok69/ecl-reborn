@@ -9,6 +9,9 @@ export default function LevelDisplay({
   points,
   youtubeVideoId,
   tags = {},
+  showActions = false,
+  onEdit,
+  onRemove,
 }) {
   const { difficulty, gamemode, decorationStyle, extraTags = [] } = tags;
 
@@ -18,14 +21,12 @@ export default function LevelDisplay({
         <div className={styles.VideoWrapper}>
           {youtubeVideoId ? (
             <iframe
-              src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
+              src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&iv_load_policy=3&disablekb=1`}
               title={`${levelName} - Geometry Dash Level`}
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className={styles.Video}
-              referrerPolicy="strict-origin-when-cross-origin"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
+              loading="lazy"
             />
           ) : (
             <div className={styles.VideoPlaceholder}>
@@ -85,6 +86,23 @@ export default function LevelDisplay({
             </span>
           ))}
         </div>
+
+        {showActions && (
+          <div className={styles.LevelActions}>
+            <button 
+              onClick={() => onEdit(id)}
+              className={styles.EditLevelBtn}
+            >
+              Edit Level
+            </button>
+            <button 
+              onClick={() => onRemove(id)}
+              className={styles.RemoveLevelBtn}
+            >
+              Remove Level
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

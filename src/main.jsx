@@ -37,6 +37,10 @@ const router = createBrowserRouter([
         loader: challengesLoader,
       },
       {
+        path: "edit/:id",
+        element: <></>
+      },
+      {
         path: "leaderboard/",
         element: (
           <ProtectedRoute>

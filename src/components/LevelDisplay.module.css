@@ -11,6 +11,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     min-height: 240px;
     align-items: stretch;
+    position: relative;
 }
 
 .LevelContainer:hover {
@@ -292,5 +293,78 @@
     
     .InfoLabel {
         font-size: 0.7rem;
+    }
+}
+
+/* Level Actions */
+.LevelActions {
+    position: absolute;
+    top: 2.5rem;
+    right: 2.5rem;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.LevelContainer:hover .LevelActions {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.EditLevelBtn, .RemoveLevelBtn {
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+    border: 1px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.EditLevelBtn {
+    background: var(--color-gold-30);
+    color: var(--color-gold-light);
+    border-color: var(--color-gold-50);
+}
+
+.EditLevelBtn:hover {
+    background: var(--color-gold-50);
+    color: var(--color-white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-gold-30);
+}
+
+.RemoveLevelBtn {
+    background: rgba(220, 53, 69, 0.9);
+    color: var(--color-white);
+    border-color: var(--color-error);
+}
+
+.RemoveLevelBtn:hover {
+    background: var(--color-error);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+/* Mobile Actions */
+@media (max-width: 768px) {
+    .LevelActions {
+        position: static;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--color-white-10);
+        justify-content: center;
+        opacity: 1;
+        transform: none;
+    }
+
+    .EditLevelBtn, .RemoveLevelBtn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
     }
 }

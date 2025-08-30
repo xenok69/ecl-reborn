@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useParams, useLoaderData, useNavigation } from 'react-router'
+import { useParams, useLoaderData, useNavigation, useNavigate } from 'react-router'
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
+import { useAdmin } from '../hooks/useAdmin'
 import styles from './ChallengesRoute.module.css'
 
 export const challengesLoader = async ({ params }) => {
@@ -18,6 +19,8 @@ export const challengesLoader = async ({ params }) => {
 export default function ChallengesRoute() {
     const { levels, placement: urlPlacement } = useLoaderData()
     const navigation = useNavigation()
+    const navigate = useNavigate()
+    const { isAdmin } = useAdmin()
     const [currentPage, setCurrentPage] = useState(() => {
         // If placement is provided in URL, calculate initial page
         if (urlPlacement) {
@@ -26,6 +29,8 @@ export default function ChallengesRoute() {
         return 1
     })
     const [levelsPerPage] = useState(10)
+    const [deleteConfirm, setDeleteConfirm] = useState(null)
+    const [deleteTimer, setDeleteTimer] = useState(0)
     
     const isLoading = navigation.state === 'loading'
 
@@ -39,6 +44,41 @@ export default function ChallengesRoute() {
         setCurrentPage(pageNumber)
         // Scroll to top when changing pages
         window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const handleAddLevel = () => {
+        navigate('/submit')
+    }
+
+    const handleEditLevel = (levelId) => {
+        navigate(`/edit/${levelId}`)
+    }
+
+    const handleRemoveLevel = (levelId) => {
+        const level = levels.find(l => l.id === levelId)
+        setDeleteConfirm({ levelId, levelName: level?.levelName || 'Unknown Level' })
+        setDeleteTimer(3)
+        
+        const countdown = setInterval(() => {
+            setDeleteTimer(prev => {
+                if (prev <= 1) {
+                    clearInterval(countdown)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+    }
+
+    const confirmDelete = () => {
+        console.log('Confirmed delete for level ID:', deleteConfirm.levelId)
+        setDeleteConfirm(null)
+        setDeleteTimer(0)
+    }
+
+    const cancelDelete = () => {
+        setDeleteConfirm(null)
+        setDeleteTimer(0)
     }
 
     const getPaginationRange = () => {
@@ -74,6 +114,16 @@ export default function ChallengesRoute() {
                         Page {currentPage} of {totalPages}
                     </span>
                 </div>
+                {isAdmin && (
+                    <div className={styles.AdminActions}>
+                        <button 
+                            onClick={handleAddLevel}
+                            className={styles.AddLevelBtn}
+                        >
+                            Add Level
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className={styles.LevelsGrid}>
@@ -89,6 +139,9 @@ export default function ChallengesRoute() {
                                 points={level.points}
                                 youtubeVideoId={level.youtubeVideoId}
                                 tags={level.tags}
+                                showActions={isAdmin}
+                                onEdit={handleEditLevel}
+                                onRemove={handleRemoveLevel}
                             />
                         </div>
                     ))
@@ -128,6 +181,31 @@ export default function ChallengesRoute() {
                     >
                         Next
                     </button>
+                </div>
+            )}
+
+            {deleteConfirm && (
+                <div className={styles.DeleteModal}>
+                    <div className={styles.DeleteModalContent}>
+                        <h3>Delete Level</h3>
+                        <p>Are you sure you want to delete <strong>"{deleteConfirm.levelName}"</strong>?</p>
+                        <p>This action cannot be undone.</p>
+                        <div className={styles.DeleteModalActions}>
+                            <button 
+                                onClick={cancelDelete}
+                                className={styles.CancelBtn}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={confirmDelete}
+                                disabled={deleteTimer > 0}
+                                className={styles.ConfirmDeleteBtn}
+                            >
+                                {deleteTimer > 0 ? `Wait ${deleteTimer}s` : 'Confirm Delete'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
