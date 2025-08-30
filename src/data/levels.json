@@ -5,7 +5,7 @@
       "maxPoints": 100,
       "minPoints": 1
     },
-    "lastUpdated": "2025-08-29"
+    "lastUpdated": "2025-08-30"
   },
   "difficulties": {
     "FREE": "Free",
@@ -51,18 +51,24 @@
       "placement": 1,
       "levelName": "test",
       "creator": "test2",
-      "verifier": "test3",
+      "verifier": "test69",
       "id": "2354253235235",
       "youtubeVideoId": "xvFZjo5PgG0",
       "tags": {
-        "difficulty": "Extreme",
-        "gamemode": "Robot",
+        "difficulty": "Godlike",
+        "gamemode": "Mixed",
         "decorationStyle": "Effect",
         "extraTags": [
-          "Camera Abuse"
+          "Camera Abuse",
+          "Dual",
+          "Shader Abuse",
+          "Memory",
+          "CBF",
+          "Timing",
+          "Epilepsy"
         ]
       },
-      "addedDate": "2025-08-29"
+      "addedDate": "2025-08-30"
     },
     {
       "placement": 2,
