@@ -3,6 +3,7 @@ import { useParams, useLoaderData, useNavigation, useNavigate } from 'react-rout
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
 import { useAdmin } from '../hooks/useAdmin'
+import { deleteLevelFromJson } from './AdminSubmitRoute'
 import styles from './ChallengesRoute.module.css'
 
 export const challengesLoader = async ({ params }) => {
@@ -70,10 +71,23 @@ export default function ChallengesRoute() {
         }, 1000)
     }
 
-    const confirmDelete = () => {
-        console.log('Confirmed delete for level ID:', deleteConfirm.levelId)
-        setDeleteConfirm(null)
-        setDeleteTimer(0)
+    const confirmDelete = async () => {
+        try {
+            const result = await deleteLevelFromJson(deleteConfirm.levelId)
+            console.log('Level deleted successfully:', result)
+            
+            // Show success message (you could add a toast notification here)
+            alert(`Level "${deleteConfirm.levelName}" has been deleted successfully!`)
+            
+            // Refresh the page to show updated data
+            window.location.reload()
+        } catch (error) {
+            console.error('Error deleting level:', error)
+            alert(`Failed to delete level: ${error.message}`)
+        } finally {
+            setDeleteConfirm(null)
+            setDeleteTimer(0)
+        }
     }
 
     const cancelDelete = () => {

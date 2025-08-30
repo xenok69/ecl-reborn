@@ -6,6 +6,8 @@ import { difficulties, gamemodes, decorationStyles, extraTagTypes } from '../dat
 import { getLevels } from '../lib/levelUtils'
 import styles from './AdminSubmitRoute.module.css'
 
+export { deleteLevelFromJson }
+
 export const editLevelLoader = async ({ params }) => {
     const levelId = params.id
     const levels = getLevels()
@@ -18,9 +20,15 @@ export const editLevelLoader = async ({ params }) => {
     return { level, isEdit: true }
 }
 
-export const adminSubmitAction = async ({ request }) => {
+export const adminSubmitAction = async ({ request, params }) => {
     const formData = await request.formData()
     const errors = {}
+    const isEditMode = !!params?.id
+    const originalLevelId = params?.id
+
+    // Get current levels to check total count for placement validation
+    const currentLevels = getLevels()
+    const totalLevels = currentLevels.length
 
     // Get form values
     const levelName = formData.get('levelName')?.trim()
@@ -48,6 +56,20 @@ export const adminSubmitAction = async ({ request }) => {
     // Validate placement is a number
     if (placement && isNaN(parseInt(placement))) {
         errors.placement = 'Placement must be a number'
+    }
+
+    // Validate placement is within allowed range
+    if (placement) {
+        const placementNum = parseInt(placement)
+        const maxAllowedPlacement = isEditMode ? totalLevels : totalLevels + 1
+        
+        if (placementNum < 1) {
+            errors.placement = 'Placement must be at least 1'
+        } else if (placementNum > maxAllowedPlacement) {
+            errors.placement = isEditMode 
+                ? `Placement cannot exceed ${maxAllowedPlacement} (total levels: ${totalLevels})`
+                : `Placement cannot exceed ${maxAllowedPlacement} (current levels: ${totalLevels})`
+        }
     }
 
     // Validate video (YouTube ID only for now - file uploads disabled due to Netlify limitations)
@@ -80,16 +102,16 @@ export const adminSubmitAction = async ({ request }) => {
             addedDate: new Date().toISOString().split('T')[0]
         }
         
-        // Add level to the levels.json file and push to staging
-        const result = await addLevelToJson(levelData)
+        // Add or update level in the levels.json file
+        const result = await addLevelToJson(levelData, isEditMode, originalLevelId)
         
         return { 
             success: true, 
             message: result.isDevelopment 
-                ? `Level "${levelName}" validated successfully! (Development Mode) 🧪`
+                ? `Level "${levelName}" ${isEditMode ? 'updated' : 'validated'} successfully! (Development Mode) 🧪`
                 : result.isGitHubPages
-                ? `Level "${levelName}" validated successfully! (GitHub Pages Mode) 📄`
-                : `Level "${levelName}" has been added to the main list successfully! 🚀`,
+                ? `Level "${levelName}" ${isEditMode ? 'updated' : 'validated'} successfully! (GitHub Pages Mode) 📄`
+                : `Level "${levelName}" has been ${isEditMode ? 'updated in' : 'added to'} the main list successfully! 🚀`,
             data: result
         }
         
@@ -118,7 +140,180 @@ export const adminSubmitAction = async ({ request }) => {
     }
 }
 
-const addLevelToJson = async (levelData) => {
+const deleteLevelFromJson = async (levelId) => {
+    try {
+        // Read current levels.json - try multiple paths
+        const possiblePaths = [
+            '/levels.json',
+            './levels.json',
+            './src/data/levels.json',
+            '/src/data/levels.json'
+        ]
+        
+        let response, responseText, currentData
+        let lastError
+        
+        for (const path of possiblePaths) {
+            try {
+                console.log('📖 Trying to fetch levels.json from:', path)
+                response = await fetch(path)
+                
+                if (response.ok) {
+                    console.log('✅ Found levels.json at:', path)
+                    break
+                } else {
+                    console.log('❌ Not found at:', path, 'Status:', response.status)
+                    lastError = `HTTP ${response.status} at ${path}`
+                }
+            } catch (err) {
+                console.log('❌ Error fetching from:', path, err.message)
+                lastError = err.message
+            }
+        }
+        
+        if (!response || !response.ok) {
+            // Fallback: use the data directly from the imported module
+            console.log('⚠️ Cannot fetch levels.json, using imported data as fallback')
+            try {
+                const { levels: importedLevels, metadata, difficulties, gamemodes, decorationStyles, extraTagTypes } = await import('../data/levels.js')
+                currentData = {
+                    metadata: {
+                        ...metadata,
+                        get totalLevels() { return importedLevels.length }
+                    },
+                    difficulties,
+                    gamemodes, 
+                    decorationStyles,
+                    extraTagTypes,
+                    levels: importedLevels
+                }
+                console.log('✅ Using imported levels data:', currentData.levels.length, 'levels')
+            } catch (importError) {
+                console.error('❌ Cannot import levels.js either:', importError)
+                throw new Error(`Cannot load levels data: ${lastError || importError.message}`)
+            }
+        } else {
+            console.log('📄 Response status:', response.status)
+            
+            // Get the raw text first to debug JSON issues
+            responseText = await response.text()
+            console.log('📝 Raw levels.json content (first 200 chars):', responseText.substring(0, 200))
+            
+            // Try to parse as JSON
+            try {
+                currentData = JSON.parse(responseText)
+                console.log('✅ Successfully parsed levels.json')
+            } catch (parseError) {
+                console.error('❌ JSON parse error in levels.json:', parseError)
+                throw new Error(`levels.json contains invalid JSON: ${parseError.message}`)
+            }
+        }
+        
+        // Find the level to delete
+        const levelIndex = currentData.levels.findIndex(level => level.id === levelId)
+        
+        if (levelIndex === -1) {
+            throw new Error(`Level with ID ${levelId} not found for deletion`)
+        }
+        
+        const levelToDelete = currentData.levels[levelIndex]
+        const deletedPlacement = levelToDelete.placement
+        
+        // Remove the level from the array
+        currentData.levels.splice(levelIndex, 1)
+        
+        // Shift all levels below the deleted one up by 1
+        currentData.levels.forEach(level => {
+            if (level.placement > deletedPlacement) {
+                level.placement -= 1
+            }
+        })
+        
+        // Sort levels by placement to ensure correct order
+        currentData.levels.sort((a, b) => a.placement - b.placement)
+        
+        // Update lastUpdated
+        currentData.metadata.lastUpdated = new Date().toISOString().split('T')[0]
+        
+        // Check if we're in development mode or on GitHub Pages
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' ||
+                             window.location.port === '5173' ||
+                             import.meta.env.DEV
+        
+        const isGitHubPages = window.location.hostname.includes('github.io')
+        
+        if (isDevelopment || isGitHubPages) {
+            // GitHub Pages / Development fallback - just log the data and simulate success
+            console.log('🚧 GITHUB PAGES / DEV MODE - Netlify functions not available')
+            console.log('📝 Level deletion that would be submitted:')
+            console.log('Deleted level:', levelToDelete)
+            console.log('Updated levels.json:', JSON.stringify(currentData, null, 2))
+            
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            return {
+                success: true,
+                message: `Level "${levelToDelete.levelName}" deleted successfully! (GitHub Pages - no backend submission) 📄`,
+                data: { deletedLevel: levelToDelete, updatedData: currentData },
+                isDevelopment: true,
+                isGitHubPages: isGitHubPages
+            }
+        }
+
+        // Final safety check - should never reach here on GitHub Pages
+        if (window.location.hostname.includes('github.io')) {
+            console.error('🚨 ERROR: Attempting to call Netlify function on GitHub Pages!')
+            throw new Error('Cannot call Netlify functions on GitHub Pages. Deploy to Netlify for full functionality.')
+        }
+
+        // Send to backend API for staging branch update
+        const result = await fetch('/.netlify/functions/submit-level', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                action: 'delete_level',
+                deletedLevel: levelToDelete,
+                updatedData: currentData,
+                targetBranch: 'main',
+                commitMessage: `Deleted Level from data list: ${levelToDelete.levelName}`
+            })
+        })
+
+        // Get response text first to debug
+        const resultText = await result.text()
+
+        if (!resultText || resultText.trim() === '') {
+            throw new Error('Netlify function returned empty response. Check function deployment and logs.')
+        }
+
+        // Try to parse as JSON
+        let responseData
+        try {
+            responseData = JSON.parse(resultText)
+        } catch (parseError) {
+            throw new Error(`Server returned invalid JSON. Response: ${resultText.substring(0, 200)}...`)
+        }
+
+        if (!result.ok) {
+            throw new Error(responseData.message || `HTTP ${result.status}: Failed to delete level`)
+        }
+
+        console.log('Level deleted successfully:', responseData)
+        
+        return responseData
+        
+    } catch (error) {
+        console.error('Error deleting level:', error)
+        throw error
+    }
+}
+
+const addLevelToJson = async (levelData, isEditMode = false, originalLevelId = null) => {
     try {
         // Read current levels.json - try multiple paths
         const possiblePaths = [
@@ -191,15 +386,52 @@ const addLevelToJson = async (levelData) => {
         
         const newPlacement = levelData.placement
         
-        // Shift existing levels down if necessary
-        currentData.levels.forEach(level => {
-            if (level.placement >= newPlacement) {
-                level.placement += 1
+        if (isEditMode && originalLevelId) {
+            // Find the original level being edited
+            const originalLevelIndex = currentData.levels.findIndex(level => level.id === originalLevelId)
+            
+            if (originalLevelIndex === -1) {
+                throw new Error(`Level with ID ${originalLevelId} not found for editing`)
             }
-        })
-        
-        // Add new level to the levels array
-        currentData.levels.push(levelData)
+            
+            const originalLevel = currentData.levels[originalLevelIndex]
+            const oldPlacement = originalLevel.placement
+            
+            // Remove the original level from the array
+            currentData.levels.splice(originalLevelIndex, 1)
+            
+            if (oldPlacement !== newPlacement) {
+                // Handle placement changes
+                if (newPlacement < oldPlacement) {
+                    // Moving up: shift levels down that are between new and old position
+                    currentData.levels.forEach(level => {
+                        if (level.placement >= newPlacement && level.placement < oldPlacement) {
+                            level.placement += 1
+                        }
+                    })
+                } else {
+                    // Moving down: shift levels up that are between old and new position
+                    currentData.levels.forEach(level => {
+                        if (level.placement > oldPlacement && level.placement <= newPlacement) {
+                            level.placement -= 1
+                        }
+                    })
+                }
+            }
+            
+            // Add the updated level
+            currentData.levels.push(levelData)
+        } else {
+            // Adding new level - shift existing levels down if necessary
+            currentData.levels.forEach(level => {
+                if (level.placement >= newPlacement) {
+                    level.placement += 1
+                }
+            })
+            
+            // Add new level to the levels array
+            currentData.levels.push(levelData)
+        }
         
         // Sort levels by placement to ensure correct order
         currentData.levels.sort((a, b) => a.placement - b.placement)
@@ -233,7 +465,7 @@ const addLevelToJson = async (levelData) => {
             
             return {
                 success: true,
-                message: `Level "${levelData.levelName}" validated successfully! (GitHub Pages - no backend submission) 📄`,
+                message: `Level "${levelData.levelName}" ${isEditMode ? 'updated' : 'validated'} successfully! (GitHub Pages - no backend submission) 📄`,
                 data: { levelData, updatedData: currentData },
                 isDevelopment: true,
                 isGitHubPages: isGitHubPages
@@ -257,11 +489,13 @@ const addLevelToJson = async (levelData) => {
                 'Authorization': `Bearer ${getAuthToken()}` // Implement this based on your auth
             },
             body: JSON.stringify({
-                action: 'add_level',
+                action: isEditMode ? 'edit_level' : 'add_level',
                 levelData,
                 updatedData: currentData,
                 targetBranch: 'main', // Push directly to main
-                commitMessage: `Added Level to data list: ${levelData.levelName}`
+                commitMessage: isEditMode 
+                    ? `Updated Level in data list: ${levelData.levelName}`
+                    : `Added Level to data list: ${levelData.levelName}`
             })
         })
 
@@ -335,6 +569,11 @@ export default function AdminSubmitRoute() {
     // Check if we're in edit mode
     const isEditMode = loaderData?.isEdit || false
     const editLevel = loaderData?.level || null
+    
+    // Get current levels for placement validation
+    const currentLevels = getLevels()
+    const totalLevels = currentLevels.length
+    const maxPlacement = isEditMode ? totalLevels : totalLevels + 1
     
     const [extraTags, setExtraTags] = useState([])
 
@@ -443,11 +682,15 @@ export default function AdminSubmitRoute() {
                                     placeholder="Enter placement number"
                                     defaultValue={editLevel?.placement || ''}
                                     min="1"
+                                    max={maxPlacement}
                                     required
                                 />
                                 {actionData?.errors?.placement && <span className={styles.ErrorText}>{actionData.errors.placement}</span>}
                                 <div className={styles.PlacementHint}>
-                                    💡 Existing levels at this placement and below will automatically shift down
+                                    💡 {isEditMode 
+                                        ? `Max placement: ${maxPlacement} (total levels: ${totalLevels}). Levels will shift to fill gaps.`
+                                        : `Max placement: ${maxPlacement} (adding to ${totalLevels} existing levels). Levels at this placement and below will shift down.`
+                                    }
                                 </div>
                             </label>
                         </div>
