@@ -49,7 +49,7 @@
   "levels": [
     {
       "placement": 1,
-      "levelName": "so CRACKED",
+      "levelName": "so CRACKED 2",
       "creator": "MentosTeeGD",
       "verifier": "xenok1",
       "id": "103463023",
@@ -59,28 +59,6 @@
         "gamemode": "Mixed",
         "decorationStyle": "Effect",
         "extraTags": [
-          "Epilepsy"
-        ]
-      }
-    },
-    {
-      "placement": 7,
-      "levelName": "test8787",
-      "creator": "test2",
-      "verifier": "test3",
-      "id": "235425323523523232222222222222222222222",
-      "youtubeVideoId": "xvFZjo5PgG0",
-      "tags": {
-        "difficulty": "Godlike",
-        "gamemode": "Mixed",
-        "decorationStyle": "1.0",
-        "extraTags": [
-          "Camera Abuse",
-          "Shader Abuse",
-          "Memory",
-          "CBF",
-          "Timing",
-          "Dual",
           "Epilepsy"
         ]
       },
