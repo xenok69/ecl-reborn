@@ -1,9 +1,22 @@
-import { useState, useRef } from 'react'
-import { Form, useActionData, useNavigation, redirect } from 'react-router'
+import { useState, useRef, useEffect } from 'react'
+import { Form, useActionData, useNavigation, redirect, useLoaderData, useParams } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { useLoading } from '../components/LoadingContext'
 import { difficulties, gamemodes, decorationStyles, extraTagTypes } from '../data/levels.js'
+import { getLevels } from '../lib/levelUtils'
 import styles from './AdminSubmitRoute.module.css'
+
+export const editLevelLoader = async ({ params }) => {
+    const levelId = params.id
+    const levels = getLevels()
+    const level = levels.find(l => l.id === levelId)
+    
+    if (!level) {
+        throw new Response('Level not found', { status: 404 })
+    }
+    
+    return { level, isEdit: true }
+}
 
 export const adminSubmitAction = async ({ request }) => {
     const formData = await request.formData()
@@ -311,7 +324,26 @@ export default function AdminSubmitRoute() {
     const actionData = useActionData()
     const fileInputRef = useRef(null)
     
+    // Safely get loader data (may be null for regular submit route)
+    let loaderData = null
+    try {
+        loaderData = useLoaderData()
+    } catch (error) {
+        // No loader data available - this is normal for /submit route
+    }
+    
+    // Check if we're in edit mode
+    const isEditMode = loaderData?.isEdit || false
+    const editLevel = loaderData?.level || null
+    
     const [extraTags, setExtraTags] = useState([])
+
+    // Populate form with edit data
+    useEffect(() => {
+        if (isEditMode && editLevel) {
+            setExtraTags(editLevel.tags?.extraTags || [])
+        }
+    }, [isEditMode, editLevel])
 
     // Check if user is admin (temporarily disabled for testing)
     const isAdmin = true
@@ -351,9 +383,14 @@ export default function AdminSubmitRoute() {
     return (
         <div className={styles.AdminContainer}>
             <div className={styles.Header}>
-                <h1 className={styles.Title}>Admin Level Submission</h1>
+                <h1 className={styles.Title}>
+                    {isEditMode ? 'Edit Level' : 'Admin Level Submission'}
+                </h1>
                 <p className={styles.Subtitle}>
-                    Review and approve levels submitted for the Eclipse Challenge List
+                    {isEditMode 
+                        ? `Editing "${editLevel?.levelName}" - Make your changes and save`
+                        : 'Review and approve levels submitted for the Eclipse Challenge List'
+                    }
                 </p>
                 {window.location.hostname.includes('github.io') && (
                     <div style={{
@@ -389,6 +426,7 @@ export default function AdminSubmitRoute() {
                                     name="levelName"
                                     className={`${styles.Input} ${actionData?.errors?.levelName ? styles.Error : ''}`}
                                     placeholder="Enter level name"
+                                    defaultValue={editLevel?.levelName || ''}
                                     required
                                 />
                                 {actionData?.errors?.levelName && <span className={styles.ErrorText}>{actionData.errors.levelName}</span>}
@@ -403,6 +441,7 @@ export default function AdminSubmitRoute() {
                                     name="placement"
                                     className={`${styles.Input} ${actionData?.errors?.placement ? styles.Error : ''}`}
                                     placeholder="Enter placement number"
+                                    defaultValue={editLevel?.placement || ''}
                                     min="1"
                                     required
                                 />
@@ -423,6 +462,7 @@ export default function AdminSubmitRoute() {
                                     name="creator"
                                     className={`${styles.Input} ${actionData?.errors?.creator ? styles.Error : ''}`}
                                     placeholder="Enter creator name"
+                                    defaultValue={editLevel?.creator || ''}
                                     required
                                 />
                                 {actionData?.errors?.creator && <span className={styles.ErrorText}>{actionData.errors.creator}</span>}
@@ -437,6 +477,7 @@ export default function AdminSubmitRoute() {
                                     name="verifier"
                                     className={`${styles.Input} ${actionData?.errors?.verifier ? styles.Error : ''}`}
                                     placeholder="Enter verifier name"
+                                    defaultValue={editLevel?.verifier || ''}
                                     required
                                 />
                                 {actionData?.errors?.verifier && <span className={styles.ErrorText}>{actionData.errors.verifier}</span>}
@@ -452,6 +493,7 @@ export default function AdminSubmitRoute() {
                                 name="levelId"
                                 className={`${styles.Input} ${actionData?.errors?.levelId ? styles.Error : ''}`}
                                 placeholder="Enter Geometry Dash level ID"
+                                defaultValue={editLevel?.id || ''}
                                 required
                             />
                             {actionData?.errors?.levelId && <span className={styles.ErrorText}>{actionData.errors.levelId}</span>}
@@ -471,6 +513,7 @@ export default function AdminSubmitRoute() {
                                 name="youtubeVideoId"
                                 className={`${styles.Input} ${actionData?.errors?.video ? styles.Error : ''}`}
                                 placeholder="Enter YouTube video ID (e.g., dQw4w9WgXcQ)"
+                                defaultValue={editLevel?.youtubeVideoId || ''}
                                 required
                             />
                             <div className={styles.FileInputHint}>
@@ -496,6 +539,7 @@ export default function AdminSubmitRoute() {
                                 <select
                                     name="difficulty"
                                     className={`${styles.Select} ${actionData?.errors?.difficulty ? styles.Error : ''}`}
+                                    defaultValue={editLevel?.tags?.difficulty || ''}
                                     required
                                 >
                                     <option value="">Select difficulty</option>
@@ -513,6 +557,7 @@ export default function AdminSubmitRoute() {
                                 <select
                                     name="gamemode"
                                     className={`${styles.Select} ${actionData?.errors?.gamemode ? styles.Error : ''}`}
+                                    defaultValue={editLevel?.tags?.gamemode || ''}
                                     required
                                 >
                                     <option value="">Select gamemode</option>
@@ -531,6 +576,7 @@ export default function AdminSubmitRoute() {
                             <select
                                 name="decorationStyle"
                                 className={`${styles.Select} ${actionData?.errors?.decorationStyle ? styles.Error : ''}`}
+                                defaultValue={editLevel?.tags?.decorationStyle || ''}
                                 required
                             >
                                 <option value="">Select decoration style</option>
@@ -573,7 +619,10 @@ export default function AdminSubmitRoute() {
                         disabled={isSubmitting}
                         className={`${styles.SubmitBtn} ${styles.AddBtn}`}
                     >
-                        {isSubmitting ? 'Adding Level...' : 'Add Level'}
+                        {isSubmitting 
+                            ? (isEditMode ? 'Updating Level...' : 'Adding Level...') 
+                            : (isEditMode ? 'Update Level' : 'Add Level')
+                        }
                     </button>
                 </div>
             </Form>
