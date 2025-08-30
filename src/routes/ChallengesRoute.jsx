@@ -52,6 +52,7 @@ export default function ChallengesRoute() {
     }
 
     const handleEditLevel = (levelId) => {
+        console.log('🔍 ChallengesRoute - Edit button clicked for level ID:', levelId, 'Type:', typeof levelId)
         navigate(`/edit/${levelId}`)
     }
 

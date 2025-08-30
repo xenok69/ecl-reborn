@@ -10,13 +10,25 @@ export { deleteLevelFromJson }
 
 export const editLevelLoader = async ({ params }) => {
     const levelId = params.id
+    console.log('🔍 Edit Loader - Looking for level with ID:', levelId, 'Type:', typeof levelId)
+    
     const levels = getLevels()
-    const level = levels.find(l => l.id === levelId)
+    console.log('📝 Edit Loader - Available level IDs:', levels.map(l => ({ id: l.id, type: typeof l.id })))
+    
+    const level = levels.find(l => {
+        // Ensure both IDs are strings for comparison
+        const normalizedLevelId = String(l.id)
+        const normalizedSearchId = String(levelId)
+        console.log(`Edit Loader - Comparing: "${normalizedLevelId}" === "${normalizedSearchId}"`, normalizedLevelId === normalizedSearchId)
+        return normalizedLevelId === normalizedSearchId
+    })
     
     if (!level) {
+        console.error('❌ Edit Loader - Level not found. Available levels:', levels.map(l => l.id))
         throw new Response('Level not found', { status: 404 })
     }
     
+    console.log('✅ Edit Loader - Found level:', level.levelName)
     return { level, isEdit: true }
 }
 
