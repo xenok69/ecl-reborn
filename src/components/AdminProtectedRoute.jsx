@@ -23,7 +23,17 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
 
   useEffect(() => {
     if (user && isAuthenticated) {
-      const userIsModerator = moderatorsData.some(moderator => moderator.id === user.id);
+      console.log('🔍 AdminProtectedRoute Debug:');
+      console.log('User ID from Discord:', user.id, typeof user.id);
+      console.log('Moderators data:', moderatorsData);
+      console.log('Checking if user ID matches any moderator...');
+      
+      const userIsModerator = moderatorsData.some(moderator => {
+        console.log(`Comparing "${moderator.id}" (${typeof moderator.id}) with "${user.id}" (${typeof user.id})`);
+        return moderator.id === user.id;
+      });
+      
+      console.log('Is user a moderator?', userIsModerator);
       setIsAdmin(userIsModerator);
     } else {
       setIsAdmin(false);
