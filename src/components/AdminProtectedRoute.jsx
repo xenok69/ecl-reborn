@@ -31,11 +31,20 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
     setIsCheckingAdmin(false);
   }, [user, isAuthenticated]);
 
+  console.log('🔍 AdminProtectedRoute Debug:');
+  console.log('isLoading:', isLoading);
+  console.log('isCheckingAdmin:', isCheckingAdmin);
+  console.log('isAuthenticated:', isAuthenticated);
+  console.log('isAdmin:', isAdmin);
+  console.log('user:', user);
+
   if (isLoading || isCheckingAdmin) {
+    console.log('❌ Returning null due to loading state');
     return null;
   }
 
   if (!isAuthenticated) {
+    console.log('❌ Redirecting to signin - not authenticated');
     if (fallback) {
       return fallback;
     }
@@ -44,8 +53,10 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
   }
 
   if (!isAdmin) {
+    console.log('❌ Redirecting to home - not admin, isAdmin:', isAdmin);
     return <Navigate to="/" replace />;
   }
 
+  console.log('✅ Rendering protected content - user is admin!');
   return children;
 }
