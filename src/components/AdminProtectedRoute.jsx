@@ -22,6 +22,11 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
   }, [isLoading, isCheckingAdmin, setIsLoading]);
 
   useEffect(() => {
+    // Wait until we have a definitive authentication state
+    if (isLoading) {
+      return; // Don't do anything while auth is still loading
+    }
+    
     if (isAuthenticated && user) {
       const userIsModerator = moderatorsData.some(moderator => moderator.id === user.id);
       setIsAdmin(userIsModerator);
@@ -30,8 +35,7 @@ export default function AdminProtectedRoute({ children, fallback = null, redirec
       setIsAdmin(false);
       setIsCheckingAdmin(false);
     }
-    // Don't set isCheckingAdmin to false if we're still loading authentication
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, isLoading]);
 
   console.log('🔍 AdminProtectedRoute Debug:');
   console.log('isLoading:', isLoading);
