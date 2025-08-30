@@ -305,6 +305,8 @@ const getAuthToken = () => {
 }
 
 export default function AdminSubmitRoute() {
+    console.log('🚀 AdminSubmitRoute component is rendering!');
+    
     const { user, isAuthenticated } = useAuth()
     const { setIsLoading } = useLoading()
     const navigation = useNavigation()
