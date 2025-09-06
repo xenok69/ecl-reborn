@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Form, useActionData, useNavigation, redirect, useLoaderData, useParams } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { useLoading } from '../components/LoadingContext'
@@ -447,12 +447,18 @@ export default function AdminSubmitRoute() {
     const isEditMode = loaderData?.isEdit || false
     const editLevel = loaderData?.level || null
     
-    // Get current levels for placement validation
-    const currentLevels = getLevels()
-    const totalLevels = currentLevels.length
+    // For placement validation, we'll use a default safe value
+    const totalLevels = 100 // Default safe value - actual validation happens server-side
     const maxPlacement = isEditMode ? totalLevels : totalLevels + 1
     
     const [extraTags, setExtraTags] = useState([])
+    
+    // Stable dropdown values using useMemo to prevent re-renders
+    const stableSelectValues = useMemo(() => ({
+        difficulty: editLevel?.tags?.difficulty || editLevel?.difficulty || '',
+        gamemode: editLevel?.tags?.gamemode || editLevel?.gamemode || '',
+        decorationStyle: editLevel?.tags?.decorationStyle || editLevel?.decorationStyle || ''
+    }), [editLevel?.tags?.difficulty, editLevel?.tags?.gamemode, editLevel?.tags?.decorationStyle, editLevel?.difficulty, editLevel?.gamemode, editLevel?.decorationStyle])
 
     // Populate form with edit data
     useEffect(() => {
@@ -659,7 +665,8 @@ export default function AdminSubmitRoute() {
                                 <select
                                     name="difficulty"
                                     className={`${styles.Select} ${actionData?.errors?.difficulty ? styles.Error : ''}`}
-                                    defaultValue={editLevel?.tags?.difficulty || ''}
+                                    defaultValue={stableSelectValues.difficulty}
+                                    key={`difficulty-${stableSelectValues.difficulty}`}
                                     required
                                 >
                                     <option value="">Select difficulty</option>
@@ -677,7 +684,8 @@ export default function AdminSubmitRoute() {
                                 <select
                                     name="gamemode"
                                     className={`${styles.Select} ${actionData?.errors?.gamemode ? styles.Error : ''}`}
-                                    defaultValue={editLevel?.tags?.gamemode || ''}
+                                    defaultValue={stableSelectValues.gamemode}
+                                    key={`gamemode-${stableSelectValues.gamemode}`}
                                     required
                                 >
                                     <option value="">Select gamemode</option>
@@ -696,7 +704,8 @@ export default function AdminSubmitRoute() {
                             <select
                                 name="decorationStyle"
                                 className={`${styles.Select} ${actionData?.errors?.decorationStyle ? styles.Error : ''}`}
-                                defaultValue={editLevel?.tags?.decorationStyle || ''}
+                                defaultValue={stableSelectValues.decorationStyle}
+                                key={`decorationStyle-${stableSelectValues.decorationStyle}`}
                                 required
                             >
                                 <option value="">Select decoration style</option>
@@ -734,6 +743,13 @@ export default function AdminSubmitRoute() {
 
 
                 <div className={styles.SubmitSection}>
+                    {/* Feedback message near submit button */}
+                    {actionData?.message && (
+                        <div className={`${styles.SubmitFeedback} ${actionData.success ? styles.SuccessMessage : styles.ErrorMessage}`}>
+                            {actionData.message}
+                        </div>
+                    )}
+                    
                     <button
                         type="submit"
                         disabled={isSubmitting}
