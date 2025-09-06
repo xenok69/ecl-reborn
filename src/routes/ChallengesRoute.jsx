@@ -10,25 +10,29 @@ export const challengesLoader = async ({ params }) => {
     // Simulate the loading delay you had
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    const allLevels = await getLevels()
-    return { 
-        levels: allLevels,
-        placement: params.placement 
+    try {
+        const allLevels = await getLevels()
+        return { 
+            levels: allLevels,
+            placement: params.placement,
+            error: null
+        }
+    } catch (error) {
+        console.error('Failed to load levels:', error)
+        return { 
+            levels: [],
+            placement: params.placement,
+            error: error.message
+        }
     }
 }
 
 export default function ChallengesRoute() {
-    const { levels, placement: urlPlacement } = useLoaderData()
+    const { levels, placement: urlPlacement, error } = useLoaderData()
     const navigation = useNavigation()
     const navigate = useNavigate()
     const { isAdmin } = useAdmin()
     
-    // Debug logging
-    console.log('🔍 ChallengesRoute Debug:', { 
-        isAdmin, 
-        levelsCount: levels?.length,
-        firstLevel: levels?.[0]
-    })
     const [currentPage, setCurrentPage] = useState(() => {
         // If placement is provided in URL, calculate initial page
         if (urlPlacement) {
@@ -169,7 +173,28 @@ export default function ChallengesRoute() {
                     ))
                 ) : (
                     <div className={styles.NoLevels}>
-                        <span>No levels found</span>
+                        {error ? (
+                            <div>
+                                <h3>🚫 Database Error</h3>
+                                <p>Failed to load levels: {error}</p>
+                                <p>Please check your connection and try refreshing the page.</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h3>📭 No Levels Yet</h3>
+                                <p>The level database is currently empty.</p>
+                                {isAdmin && (
+                                    <p>
+                                        <button 
+                                            onClick={handleAddLevel}
+                                            className={styles.AddLevelBtn}
+                                        >
+                                            Add the First Level
+                                        </button>
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

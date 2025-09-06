@@ -1,4 +1,3 @@
-import levelsData from '../data/levels.js'
 import { supabaseOperations } from './supabase.js'
 
 /**
@@ -19,36 +18,44 @@ export function calculatePoints(placement, totalLevels = 100) {
 }
 
 /**
- * Get all levels with calculated points
- * Falls back to local JSON if Supabase is unavailable
+ * Get all levels with calculated points from Supabase
+ * Returns empty array if no levels found
  */
 export async function getLevels() {
     try {
         const supabaseLevels = await supabaseOperations.getLevels()
-        if (supabaseLevels && supabaseLevels.length > 0) {
-            console.log('✅ Using Supabase data')
-            
-            // Transform Supabase flat data to match expected nested structure
-            const transformedLevels = supabaseLevels.map(level => ({
-                ...level,
-                tags: {
-                    difficulty: level.difficulty,
-                    gamemode: level.gamemode,
-                    decorationStyle: level.decorationStyle,
-                    extraTags: level.extraTags || []
-                },
-                // Calculate points based on placement
-                points: calculatePoints(level.placement, supabaseLevels.length)
-            }))
-            
-            return transformedLevels
+        
+        if (!supabaseLevels) {
+            console.log('📭 No levels found in database')
+            return []
         }
+        
+        if (supabaseLevels.length === 0) {
+            console.log('📭 Database is empty - no levels yet')
+            return []
+        }
+        
+        console.log(`✅ Using Supabase data - ${supabaseLevels.length} levels found`)
+        
+        // Transform Supabase flat data to match expected nested structure
+        const transformedLevels = supabaseLevels.map(level => ({
+            ...level,
+            tags: {
+                difficulty: level.difficulty,
+                gamemode: level.gamemode,
+                decorationStyle: level.decorationStyle,
+                extraTags: level.extraTags || []
+            },
+            // Calculate points based on placement
+            points: calculatePoints(level.placement, supabaseLevels.length)
+        }))
+        
+        return transformedLevels
+        
     } catch (error) {
-        console.warn('⚠️ Supabase fetch failed, using local fallback:', error.message)
+        console.error('❌ Failed to fetch levels from Supabase:', error.message)
+        throw new Error(`Database error: ${error.message}`)
     }
-    
-    console.log('📁 Using local JSON data')
-    return levelsData.getLevels()
 }
 
 /**
