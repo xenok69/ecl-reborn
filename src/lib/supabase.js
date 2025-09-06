@@ -72,16 +72,31 @@ export const supabaseOperations = {
     try {
       const newPlacement = levelData.placement
 
-      // First, shift existing levels down if necessary
-      console.log(`🔄 Shifting levels at placement ${newPlacement} and below down by 1`)
-      const { error: shiftError } = await supabase
+      // First, get all levels that need to be shifted down
+      const { data: levelsToShift, error: fetchError } = await supabase
         .from('levels')
-        .update({ placement: supabase.sql`placement + 1` })
+        .select('id, placement')
         .gte('placement', newPlacement)
 
-      if (shiftError) {
-        console.error('Error shifting levels down:', shiftError)
-        throw shiftError
+      if (fetchError) {
+        console.error('Error fetching levels to shift:', fetchError)
+        throw fetchError
+      }
+
+      // Shift existing levels down one by one
+      if (levelsToShift && levelsToShift.length > 0) {
+        console.log(`🔄 Shifting ${levelsToShift.length} levels at placement ${newPlacement}+ down by 1`)
+        for (const level of levelsToShift) {
+          const { error: shiftError } = await supabase
+            .from('levels')
+            .update({ placement: level.placement + 1 })
+            .eq('id', level.id)
+
+          if (shiftError) {
+            console.error('Error shifting level:', level.id, shiftError)
+            throw shiftError
+          }
+        }
       }
 
       // Then insert the new level
@@ -118,30 +133,60 @@ export const supabaseOperations = {
         if (newPlacement < originalPlacement) {
           // Moving up: shift levels down that are between new and old position
           console.log(`🔼 Moving up: shifting levels ${newPlacement}-${originalPlacement-1} down by 1`)
-          const { error: shiftError } = await supabase
+          
+          const { data: levelsToShift, error: fetchError } = await supabase
             .from('levels')
-            .update({ placement: supabase.sql`placement + 1` })
+            .select('id, placement')
             .gte('placement', newPlacement)
             .lt('placement', originalPlacement)
             .neq('id', levelId)
 
-          if (shiftError) {
-            console.error('Error shifting levels for move up:', shiftError)
-            throw shiftError
+          if (fetchError) {
+            console.error('Error fetching levels to shift up:', fetchError)
+            throw fetchError
+          }
+
+          if (levelsToShift && levelsToShift.length > 0) {
+            for (const level of levelsToShift) {
+              const { error: shiftError } = await supabase
+                .from('levels')
+                .update({ placement: level.placement + 1 })
+                .eq('id', level.id)
+
+              if (shiftError) {
+                console.error('Error shifting level up:', level.id, shiftError)
+                throw shiftError
+              }
+            }
           }
         } else {
           // Moving down: shift levels up that are between old and new position
           console.log(`🔽 Moving down: shifting levels ${originalPlacement+1}-${newPlacement} up by 1`)
-          const { error: shiftError } = await supabase
+          
+          const { data: levelsToShift, error: fetchError } = await supabase
             .from('levels')
-            .update({ placement: supabase.sql`placement - 1` })
+            .select('id, placement')
             .gt('placement', originalPlacement)
             .lte('placement', newPlacement)
             .neq('id', levelId)
 
-          if (shiftError) {
-            console.error('Error shifting levels for move down:', shiftError)
-            throw shiftError
+          if (fetchError) {
+            console.error('Error fetching levels to shift down:', fetchError)
+            throw fetchError
+          }
+
+          if (levelsToShift && levelsToShift.length > 0) {
+            for (const level of levelsToShift) {
+              const { error: shiftError } = await supabase
+                .from('levels')
+                .update({ placement: level.placement - 1 })
+                .eq('id', level.id)
+
+              if (shiftError) {
+                console.error('Error shifting level down:', level.id, shiftError)
+                throw shiftError
+              }
+            }
           }
         }
       }
@@ -204,16 +249,31 @@ export const supabaseOperations = {
         throw deleteError
       }
 
-      // Shift levels up to fill the gap
-      console.log(`🔄 Filling placement gap at ${deletedPlacement} - shifting levels ${deletedPlacement+1}+ up by 1`)
-      const { error: shiftError } = await supabase
+      // Get levels that need to be shifted up to fill the gap
+      const { data: levelsToShift, error: fetchShiftError } = await supabase
         .from('levels')
-        .update({ placement: supabase.sql`placement - 1` })
+        .select('id, placement')
         .gt('placement', deletedPlacement)
 
-      if (shiftError) {
-        console.error('Error shifting levels up after deletion:', shiftError)
-        throw shiftError
+      if (fetchShiftError) {
+        console.error('Error fetching levels to shift after deletion:', fetchShiftError)
+        throw fetchShiftError
+      }
+
+      // Shift levels up to fill the gap
+      if (levelsToShift && levelsToShift.length > 0) {
+        console.log(`🔄 Filling placement gap at ${deletedPlacement} - shifting ${levelsToShift.length} levels up by 1`)
+        for (const level of levelsToShift) {
+          const { error: shiftError } = await supabase
+            .from('levels')
+            .update({ placement: level.placement - 1 })
+            .eq('id', level.id)
+
+          if (shiftError) {
+            console.error('Error shifting level up after deletion:', level.id, shiftError)
+            throw shiftError
+          }
+        }
       }
 
       console.log('✅ Level deleted successfully with placement gap filled:', levelId)
