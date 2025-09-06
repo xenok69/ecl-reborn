@@ -35,17 +35,22 @@
     "THEMED": "Themed",
     "MINIMALIST": "Minimalist",
     "OVERDECORATED": "Overdecorated",
-    "1.0": "1.0"
+    "1.0": "1.0",
+    "Pixel": "Pixel",
+    "ART": "Art"
   },
   "extraTagTypes": {
     "EPILEPSY": "Epilepsy",
     "DUAL": "Dual",
     "MEMORY": "Memory",
-    "TIMING": "Timing",
     "CBF": "CBF",
     "CAMERA_ABUSE": "Camera Abuse",
     "SHADER_ABUSE": "Shader Abuse",
-    "Pixel": "Pixel"
+    "2P": "2P",
+    "FAST_PACED": "Fast Paced",
+    "SLOW_PACED": "Slow Paced",
+    "CLICK_SYNC": "Click Sync",
+    "MENTOS_GAMEPLAY": "Mentos Gameplay"
   },
   "levels": []
 }
