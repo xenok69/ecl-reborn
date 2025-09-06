@@ -63,49 +63,160 @@ export const supabaseOperations = {
     }
   },
 
-  // Add or update a level
-  async upsertLevel(levelData) {
+  // Add a new level with placement shifting
+  async addLevel(levelData) {
     if (!supabase) {
       throw new Error('Supabase not configured')
     }
 
     try {
+      const newPlacement = levelData.placement
+
+      // First, shift existing levels down if necessary
+      console.log(`🔄 Shifting levels at placement ${newPlacement} and below down by 1`)
+      const { error: shiftError } = await supabase
+        .from('levels')
+        .update({ placement: supabase.sql`placement + 1` })
+        .gte('placement', newPlacement)
+
+      if (shiftError) {
+        console.error('Error shifting levels down:', shiftError)
+        throw shiftError
+      }
+
+      // Then insert the new level
       const { data, error } = await supabase
         .from('levels')
-        .upsert(levelData, { onConflict: 'id' })
+        .insert(levelData)
         .select()
 
       if (error) {
-        console.error('Error upserting level:', error)
+        console.error('Error adding level:', error)
         throw error
       }
 
-      console.log('✅ Level upserted successfully:', data)
+      console.log('✅ Level added successfully with placement shifting:', data)
       return data
     } catch (error) {
-      console.error('Supabase upsert error:', error)
+      console.error('Supabase add level error:', error)
       throw error
     }
   },
 
-  // Delete a level
+  // Update an existing level with placement shifting
+  async updateLevel(levelId, levelData, originalPlacement) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      const newPlacement = levelData.placement
+      
+      if (originalPlacement !== newPlacement) {
+        console.log(`🔄 Moving level from placement ${originalPlacement} to ${newPlacement}`)
+        
+        if (newPlacement < originalPlacement) {
+          // Moving up: shift levels down that are between new and old position
+          console.log(`🔼 Moving up: shifting levels ${newPlacement}-${originalPlacement-1} down by 1`)
+          const { error: shiftError } = await supabase
+            .from('levels')
+            .update({ placement: supabase.sql`placement + 1` })
+            .gte('placement', newPlacement)
+            .lt('placement', originalPlacement)
+            .neq('id', levelId)
+
+          if (shiftError) {
+            console.error('Error shifting levels for move up:', shiftError)
+            throw shiftError
+          }
+        } else {
+          // Moving down: shift levels up that are between old and new position
+          console.log(`🔽 Moving down: shifting levels ${originalPlacement+1}-${newPlacement} up by 1`)
+          const { error: shiftError } = await supabase
+            .from('levels')
+            .update({ placement: supabase.sql`placement - 1` })
+            .gt('placement', originalPlacement)
+            .lte('placement', newPlacement)
+            .neq('id', levelId)
+
+          if (shiftError) {
+            console.error('Error shifting levels for move down:', shiftError)
+            throw shiftError
+          }
+        }
+      }
+
+      // Update the level itself
+      const { data, error } = await supabase
+        .from('levels')
+        .update(levelData)
+        .eq('id', levelId)
+        .select()
+
+      if (error) {
+        console.error('Error updating level:', error)
+        throw error
+      }
+
+      console.log('✅ Level updated successfully with placement shifting:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase update level error:', error)
+      throw error
+    }
+  },
+
+  // Legacy upsert function - use addLevel or updateLevel instead
+  async upsertLevel(levelData) {
+    console.warn('⚠️  upsertLevel is deprecated. Use addLevel or updateLevel instead.')
+    return this.addLevel(levelData)
+  },
+
+  // Delete a level and fill placement gap
   async deleteLevel(levelId) {
     if (!supabase) {
       throw new Error('Supabase not configured')
     }
 
     try {
-      const { error } = await supabase
+      // First get the level's placement to know which gap to fill
+      const { data: levelToDelete, error: fetchError } = await supabase
+        .from('levels')
+        .select('placement')
+        .eq('id', levelId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error finding level to delete:', fetchError)
+        throw fetchError
+      }
+
+      const deletedPlacement = levelToDelete.placement
+
+      // Delete the level
+      const { error: deleteError } = await supabase
         .from('levels')
         .delete()
         .eq('id', levelId)
 
-      if (error) {
-        console.error('Error deleting level:', error)
-        throw error
+      if (deleteError) {
+        console.error('Error deleting level:', deleteError)
+        throw deleteError
       }
 
-      console.log('✅ Level deleted successfully:', levelId)
+      // Shift levels up to fill the gap
+      console.log(`🔄 Filling placement gap at ${deletedPlacement} - shifting levels ${deletedPlacement+1}+ up by 1`)
+      const { error: shiftError } = await supabase
+        .from('levels')
+        .update({ placement: supabase.sql`placement - 1` })
+        .gt('placement', deletedPlacement)
+
+      if (shiftError) {
+        console.error('Error shifting levels up after deletion:', shiftError)
+        throw shiftError
+      }
+
+      console.log('✅ Level deleted successfully with placement gap filled:', levelId)
       return true
     } catch (error) {
       console.error('Supabase delete error:', error)

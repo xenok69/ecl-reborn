@@ -3,7 +3,7 @@ import { Form, useActionData, useNavigation, redirect, useLoaderData, useParams 
 import { useAuth } from '../hooks/useAuth'
 import { useLoading } from '../components/LoadingContext'
 import { difficulties, gamemodes, decorationStyles, extraTagTypes } from '../data/levels.js'
-import { getLevels, addLevel, deleteLevel } from '../lib/levelUtils'
+import { getLevels, addLevel, updateLevel, deleteLevel } from '../lib/levelUtils'
 import styles from './AdminSubmitRoute.module.css'
 
 export { deleteLevelFromSupabase as deleteLevelFromJson }
@@ -41,6 +41,23 @@ export const adminSubmitAction = async ({ request, params }) => {
     // Get current levels to check total count for placement validation
     const currentLevels = await getLevels()
     const totalLevels = currentLevels.length
+    
+    // If in edit mode, get the original level's placement
+    let originalLevel = null
+    if (isEditMode && originalLevelId) {
+        originalLevel = currentLevels.find(level => {
+            const normalizedLevelId = String(level.id)
+            const normalizedSearchId = String(originalLevelId)
+            return normalizedLevelId === normalizedSearchId
+        })
+        
+        if (!originalLevel) {
+            console.error('❌ Original level not found for editing. Available levels:', currentLevels.map(l => l.id))
+            throw new Error(`Level with ID ${originalLevelId} not found for editing`)
+        }
+        
+        console.log('📝 Found original level for editing:', originalLevel.levelName, 'at placement:', originalLevel.placement)
+    }
 
     // Get form values
     const levelName = formData.get('levelName')?.trim()
@@ -111,9 +128,16 @@ export const adminSubmitAction = async ({ request, params }) => {
         
         console.log('📝 Sending level data to Supabase:', levelData)
         
-        // Add or update level in Supabase
+        // Add or update level in Supabase with placement shifting
         try {
-            const result = await addLevel(levelData)
+            let result
+            if (isEditMode && originalLevel) {
+                // Update existing level with placement shifting
+                result = await updateLevel(originalLevelId, levelData, originalLevel.placement)
+            } else {
+                // Add new level with placement shifting
+                result = await addLevel(levelData)
+            }
             
             return { 
                 success: true, 
@@ -447,8 +471,26 @@ export default function AdminSubmitRoute() {
     const isEditMode = loaderData?.isEdit || false
     const editLevel = loaderData?.level || null
     
-    // For placement validation, we'll use a default safe value
-    const totalLevels = 100 // Default safe value - actual validation happens server-side
+    // Get current levels for placement validation and hints
+    const [currentLevels, setCurrentLevels] = useState([])
+    const [isLoadingLevels, setIsLoadingLevels] = useState(true)
+    
+    // Load current levels on mount for accurate placement hints
+    useEffect(() => {
+        const loadLevels = async () => {
+            try {
+                const levels = await getLevels()
+                setCurrentLevels(levels)
+            } catch (error) {
+                console.error('Failed to load levels for placement hints:', error)
+            } finally {
+                setIsLoadingLevels(false)
+            }
+        }
+        loadLevels()
+    }, [])
+    
+    const totalLevels = currentLevels.length
     const maxPlacement = isEditMode ? totalLevels : totalLevels + 1
     
     const [extraTags, setExtraTags] = useState([])

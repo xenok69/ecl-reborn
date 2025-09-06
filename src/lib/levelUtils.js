@@ -117,13 +117,25 @@ export async function getLeaderboard(limit = 50) {
 }
 
 /**
- * Add a new level via Supabase
+ * Add a new level via Supabase with placement shifting
  */
 export async function addLevel(levelData) {
     try {
-        return await supabaseOperations.upsertLevel(levelData)
+        return await supabaseOperations.addLevel(levelData)
     } catch (error) {
         console.error('Failed to add level to Supabase:', error)
+        throw error
+    }
+}
+
+/**
+ * Update an existing level via Supabase with placement shifting
+ */
+export async function updateLevel(levelId, levelData, originalPlacement) {
+    try {
+        return await supabaseOperations.updateLevel(levelId, levelData, originalPlacement)
+    } catch (error) {
+        console.error('Failed to update level in Supabase:', error)
         throw error
     }
 }
@@ -148,5 +160,7 @@ export default {
     getLevelsByTag,
     searchLevels,
     getLeaderboard,
-    addLevel
+    addLevel,
+    updateLevel,
+    deleteLevel
 }

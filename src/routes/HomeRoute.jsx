@@ -35,9 +35,9 @@ export default function HomeRoute() {
             The Eclipse Challenge List - Reimagined for the Modern Era
           </p>
           <p className={styles.description}>
-            A reimagined version of the Eclipse Challenge List. 
-            A personal passion project to create a modern, sleek interface 
-            for tracking and exploring challenging Geometry Dash levels.
+            A reimagined version of the Eclipse Challenge List. A personal
+            passion project to create a modern, sleek interface for tracking and
+            exploring challenging Geometry Dash levels.
           </p>
         </div>
       </div>
@@ -59,12 +59,20 @@ export default function HomeRoute() {
           <div className={styles.cardContent}>
             {isAuthenticated ? (
               <div className={styles.welcomeMessage}>
-                <p>Welcome back, <strong>{user?.username}</strong>!</p>
-                <p>You're all set to start exploring challenges and tracking your progress.</p>
+                <p>
+                  Welcome back, <strong>{user?.username}</strong>!
+                </p>
+                <p>
+                  You're all set to start exploring challenges and tracking your
+                  progress.
+                </p>
               </div>
             ) : (
               <div className={styles.signInPrompt}>
-                <p>Sign in with Discord to start exploring challenges and tracking your progress.</p>
+                <p>
+                  Sign in with Discord to start exploring challenges and
+                  tracking your progress.
+                </p>
                 <a href="/signin" className={styles.ctaButton}>
                   Sign In
                 </a>
@@ -73,23 +81,24 @@ export default function HomeRoute() {
           </div>
         </section>
 
-
         <section className={styles.adminCard}>
           <h2 className={styles.cardTitle}>Website Administration</h2>
           <div className={styles.adminInfo}>
-            <p><strong>Current Editors:</strong></p>
+            <p>
+              <strong>Current Editors:</strong>
+            </p>
             <ul className={styles.editorList}>
               {moderators.map((moderator, index) => (
                 <li key={index} className={styles.editorItem}>
-                  <span className={styles.editorName}>{moderator.username}</span>
+                  <span className={styles.editorName}>
+                    {moderator.username}
+                  </span>
                   <span className={styles.editorRole}>{moderator.role}</span>
                 </li>
               ))}
             </ul>
             {moderators.length === 0 && (
-              <p className={styles.adminNote}>
-                Loading editors...
-              </p>
+              <p className={styles.adminNote}>Loading editors...</p>
             )}
           </div>
         </section>
@@ -97,14 +106,14 @@ export default function HomeRoute() {
         <section className={styles.legacyCard}>
           <h2 className={styles.cardTitle}>Legacy ECL</h2>
           <p className={styles.cardContent}>
-            This is a reimagined version of the original Eclipse Challenge List. 
-            Built with modern web technologies to provide a better experience 
+            This is a reimagined version of the original Eclipse Challenge List.
+            Built with modern web technologies to provide a better experience
             while maintaining the essence of the original project.
           </p>
-          <a 
-            href="https://ecl-reborn.netlify.app" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href="https://xenok69.github.io/ECL/MainList.html"
+            target="_blank"
+            rel="noopener noreferrer"
             className={styles.legacyLink}
           >
             View Original ECL
