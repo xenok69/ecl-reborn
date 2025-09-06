@@ -48,7 +48,7 @@
   },
   "levels": [
     {
-      "placement": 1,
+      "placement": 2,
       "levelName": "so CRACKED",
       "creator": "MentosTeeGD",
       "verifier": "xenok1",
@@ -59,7 +59,8 @@
         "gamemode": "Mixed",
         "decorationStyle": "Effect",
         "extraTags": ["Epilepsy"]
-      }
+      },
+      "addedDate": "2025-08-30"
     }
   ]
 }
