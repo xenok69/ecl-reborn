@@ -10,7 +10,7 @@ export const challengesLoader = async ({ params }) => {
     // Simulate the loading delay you had
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    const allLevels = getLevels()
+    const allLevels = await getLevels()
     return { 
         levels: allLevels,
         placement: params.placement 
@@ -22,6 +22,13 @@ export default function ChallengesRoute() {
     const navigation = useNavigation()
     const navigate = useNavigate()
     const { isAdmin } = useAdmin()
+    
+    // Debug logging
+    console.log('🔍 ChallengesRoute Debug:', { 
+        isAdmin, 
+        levelsCount: levels?.length,
+        firstLevel: levels?.[0]
+    })
     const [currentPage, setCurrentPage] = useState(() => {
         // If placement is provided in URL, calculate initial page
         if (urlPlacement) {

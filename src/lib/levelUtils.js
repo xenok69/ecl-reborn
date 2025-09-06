@@ -1,4 +1,5 @@
 import levelsData from '../data/levels.js'
+import { supabaseOperations } from './supabase.js'
 
 /**
  * Calculate points based on placement
@@ -19,38 +20,68 @@ export function calculatePoints(placement, totalLevels = 100) {
 
 /**
  * Get all levels with calculated points
+ * Falls back to local JSON if Supabase is unavailable
  */
-export function getLevels() {
+export async function getLevels() {
+    try {
+        const supabaseLevels = await supabaseOperations.getLevels()
+        if (supabaseLevels && supabaseLevels.length > 0) {
+            console.log('✅ Using Supabase data')
+            
+            // Transform Supabase flat data to match expected nested structure
+            const transformedLevels = supabaseLevels.map(level => ({
+                ...level,
+                tags: {
+                    difficulty: level.difficulty,
+                    gamemode: level.gamemode,
+                    decorationStyle: level.decorationStyle,
+                    extraTags: level.extraTags || []
+                },
+                // Calculate points based on placement
+                points: calculatePoints(level.placement, supabaseLevels.length)
+            }))
+            
+            return transformedLevels
+        }
+    } catch (error) {
+        console.warn('⚠️ Supabase fetch failed, using local fallback:', error.message)
+    }
+    
+    console.log('📁 Using local JSON data')
     return levelsData.getLevels()
 }
 
 /**
  * Get a specific level by placement
  */
-export function getLevelByPlacement(placement) {
-    return levelsData.getLevelByPlacement(placement)
+export async function getLevelByPlacement(placement) {
+    const levels = await getLevels()
+    return levels.find(level => level.placement === placement)
 }
 
 /**
  * Get levels by difficulty
  */
-export function getLevelsByDifficulty(difficulty) {
-    return levelsData.getLevelsByDifficulty(difficulty)
+export async function getLevelsByDifficulty(difficulty) {
+    const levels = await getLevels()
+    return levels.filter(level => level.difficulty === difficulty)
 }
 
 /**
  * Get levels by tag
  */
-export function getLevelsByTag(tagType, tagValue) {
+export async function getLevelsByTag(tagType, tagValue) {
+    const levels = await getLevels()
+    
     switch (tagType) {
         case 'difficulty':
-            return levelsData.getLevelsByDifficulty(tagValue)
+            return levels.filter(level => level.difficulty === tagValue)
         case 'gamemode':
-            return levelsData.getLevelsByGamemode(tagValue)
+            return levels.filter(level => level.gamemode === tagValue)
         case 'decorationStyle':
-            return levelsData.getLevelsByDecorationStyle(tagValue)
+            return levels.filter(level => level.decorationStyle === tagValue)
         case 'extraTags':
-            return levelsData.getLevelsByExtraTag(tagValue)
+            return levels.filter(level => level.extraTags && level.extraTags.includes(tagValue))
         default:
             return []
     }
@@ -59,22 +90,47 @@ export function getLevelsByTag(tagType, tagValue) {
 /**
  * Search levels by name or creator
  */
-export function searchLevels(query) {
-    return levelsData.searchLevels(query)
+export async function searchLevels(query) {
+    const levels = await getLevels()
+    const searchTerm = query.toLowerCase()
+    
+    return levels.filter(level => 
+        level.levelName.toLowerCase().includes(searchTerm) ||
+        level.creator.toLowerCase().includes(searchTerm) ||
+        (level.verifier && level.verifier.toLowerCase().includes(searchTerm))
+    )
 }
 
 /**
  * Get leaderboard data (top N levels)
  */
-export function getLeaderboard(limit = 50) {
-    return levelsData.getLeaderboard(limit)
+export async function getLeaderboard(limit = 50) {
+    const levels = await getLevels()
+    return levels.slice(0, limit)
 }
 
 /**
- * Add a new level (for future use)
+ * Add a new level via Supabase
  */
-export function addLevel(placement, levelName, creator, verifier, id, youtubeVideoId, tags, description = "") {
-    return levelsData.addLevel(placement, levelName, creator, verifier, id, youtubeVideoId, tags, description)
+export async function addLevel(levelData) {
+    try {
+        return await supabaseOperations.upsertLevel(levelData)
+    } catch (error) {
+        console.error('Failed to add level to Supabase:', error)
+        throw error
+    }
+}
+
+/**
+ * Delete a level via Supabase
+ */
+export async function deleteLevel(levelId) {
+    try {
+        return await supabaseOperations.deleteLevel(levelId)
+    } catch (error) {
+        console.error('Failed to delete level from Supabase:', error)
+        throw error
+    }
 }
 
 export default {

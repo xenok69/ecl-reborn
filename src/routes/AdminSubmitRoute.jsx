@@ -3,16 +3,16 @@ import { Form, useActionData, useNavigation, redirect, useLoaderData, useParams 
 import { useAuth } from '../hooks/useAuth'
 import { useLoading } from '../components/LoadingContext'
 import { difficulties, gamemodes, decorationStyles, extraTagTypes } from '../data/levels.js'
-import { getLevels } from '../lib/levelUtils'
+import { getLevels, addLevel, deleteLevel } from '../lib/levelUtils'
 import styles from './AdminSubmitRoute.module.css'
 
-export { deleteLevelFromJson }
+export { deleteLevelFromSupabase as deleteLevelFromJson }
 
 export const editLevelLoader = async ({ params }) => {
     const levelId = params.id
     console.log('🔍 Edit Loader - Looking for level with ID:', levelId, 'Type:', typeof levelId)
     
-    const levels = getLevels()
+    const levels = await getLevels()
     console.log('📝 Edit Loader - Available level IDs:', levels.map(l => ({ id: l.id, type: typeof l.id })))
     
     const level = levels.find(l => {
@@ -39,7 +39,7 @@ export const adminSubmitAction = async ({ request, params }) => {
     const originalLevelId = params?.id
 
     // Get current levels to check total count for placement validation
-    const currentLevels = getLevels()
+    const currentLevels = await getLevels()
     const totalLevels = currentLevels.length
 
     // Get form values
@@ -110,21 +110,21 @@ export const adminSubmitAction = async ({ request, params }) => {
                 gamemode,
                 decorationStyle,
                 extraTags: selectedExtraTags
-            },
-            addedDate: new Date().toISOString().split('T')[0]
+            }
         }
         
-        // Add or update level in the levels.json file
-        const result = await addLevelToJson(levelData, isEditMode, originalLevelId)
-        
-        return { 
-            success: true, 
-            message: result.isDevelopment 
-                ? `Level "${levelName}" ${isEditMode ? 'updated' : 'validated'} successfully! (Development Mode) 🧪`
-                : result.isGitHubPages
-                ? `Level "${levelName}" ${isEditMode ? 'updated' : 'validated'} successfully! (GitHub Pages Mode) 📄`
-                : `Level "${levelName}" has been ${isEditMode ? 'updated in' : 'added to'} the main list successfully! 🚀`,
-            data: result
+        // Add or update level in Supabase
+        try {
+            const result = await addLevel(levelData)
+            
+            return { 
+                success: true, 
+                message: `Level "${levelName}" has been ${isEditMode ? 'updated in' : 'added to'} the database successfully! 🚀`,
+                data: result
+            }
+        } catch (supabaseError) {
+            console.error('Supabase operation failed:', supabaseError)
+            throw new Error(`Failed to ${isEditMode ? 'update' : 'add'} level in database: ${supabaseError.message}`)
         }
         
     } catch (error) {
@@ -152,187 +152,32 @@ export const adminSubmitAction = async ({ request, params }) => {
     }
 }
 
-const deleteLevelFromJson = async (levelId) => {
+const deleteLevelFromSupabase = async (levelId) => {
     try {
-        // Read current levels.json - try multiple paths
-        const possiblePaths = [
-            '/levels.json',
-            './levels.json',
-            './src/data/levels.json',
-            '/src/data/levels.json'
-        ]
+        console.log('🗑️ Deleting level from Supabase with ID:', levelId)
         
-        let response, responseText, currentData
-        let lastError
+        // First get the level to get its details for the response
+        const levels = await getLevels()
+        const levelToDelete = levels.find(level => String(level.id) === String(levelId))
         
-        for (const path of possiblePaths) {
-            try {
-                console.log('📖 Trying to fetch levels.json from:', path)
-                response = await fetch(path)
-                
-                if (response.ok) {
-                    console.log('✅ Found levels.json at:', path)
-                    break
-                } else {
-                    console.log('❌ Not found at:', path, 'Status:', response.status)
-                    lastError = `HTTP ${response.status} at ${path}`
-                }
-            } catch (err) {
-                console.log('❌ Error fetching from:', path, err.message)
-                lastError = err.message
-            }
-        }
-        
-        if (!response || !response.ok) {
-            // Fallback: use the data directly from the imported module
-            console.log('⚠️ Cannot fetch levels.json, using imported data as fallback')
-            try {
-                const { levels: importedLevels, metadata, difficulties, gamemodes, decorationStyles, extraTagTypes } = await import('../data/levels.js')
-                currentData = {
-                    metadata: {
-                        ...metadata,
-                        get totalLevels() { return importedLevels.length }
-                    },
-                    difficulties,
-                    gamemodes, 
-                    decorationStyles,
-                    extraTagTypes,
-                    levels: importedLevels
-                }
-                console.log('✅ Using imported levels data:', currentData.levels.length, 'levels')
-            } catch (importError) {
-                console.error('❌ Cannot import levels.js either:', importError)
-                throw new Error(`Cannot load levels data: ${lastError || importError.message}`)
-            }
-        } else {
-            console.log('📄 Response status:', response.status)
-            
-            // Get the raw text first to debug JSON issues
-            responseText = await response.text()
-            console.log('📝 Raw levels.json content (first 200 chars):', responseText.substring(0, 200))
-            
-            // Try to parse as JSON
-            try {
-                currentData = JSON.parse(responseText)
-                console.log('✅ Successfully parsed levels.json')
-            } catch (parseError) {
-                console.error('❌ JSON parse error in levels.json:', parseError)
-                throw new Error(`levels.json contains invalid JSON: ${parseError.message}`)
-            }
-        }
-        
-        // Find the level to delete
-        console.log('🔍 Looking for level with ID:', levelId, 'Type:', typeof levelId)
-        console.log('📝 Available level IDs:', currentData.levels.map(l => ({ id: l.id, type: typeof l.id })))
-        
-        const levelIndex = currentData.levels.findIndex(level => {
-            // Ensure both IDs are strings for comparison
-            const normalizedLevelId = String(level.id)
-            const normalizedSearchId = String(levelId)
-            console.log(`Comparing: "${normalizedLevelId}" === "${normalizedSearchId}"`, normalizedLevelId === normalizedSearchId)
-            return normalizedLevelId === normalizedSearchId
-        })
-        
-        if (levelIndex === -1) {
-            console.error('❌ Level not found. Available levels:', currentData.levels.map(l => l.id))
+        if (!levelToDelete) {
+            console.error('❌ Level not found. Available levels:', levels.map(l => l.id))
             throw new Error(`Level with ID ${levelId} not found for deletion`)
         }
         
-        console.log('✅ Found level at index:', levelIndex)
+        // Delete from Supabase
+        const result = await deleteLevel(levelId)
         
-        const levelToDelete = currentData.levels[levelIndex]
-        const deletedPlacement = levelToDelete.placement
+        console.log('✅ Level deleted successfully from Supabase')
         
-        // Remove the level from the array
-        currentData.levels.splice(levelIndex, 1)
-        
-        // Shift all levels below the deleted one up by 1
-        currentData.levels.forEach(level => {
-            if (level.placement > deletedPlacement) {
-                level.placement -= 1
-            }
-        })
-        
-        // Sort levels by placement to ensure correct order
-        currentData.levels.sort((a, b) => a.placement - b.placement)
-        
-        // Update lastUpdated
-        currentData.metadata.lastUpdated = new Date().toISOString().split('T')[0]
-        
-        // Check if we're in development mode or on GitHub Pages
-        const isDevelopment = window.location.hostname === 'localhost' || 
-                             window.location.hostname === '127.0.0.1' ||
-                             window.location.port === '5173' ||
-                             import.meta.env.DEV
-        
-        const isGitHubPages = window.location.hostname.includes('github.io')
-        
-        if (isDevelopment || isGitHubPages) {
-            // GitHub Pages / Development fallback - just log the data and simulate success
-            console.log('🚧 GITHUB PAGES / DEV MODE - Netlify functions not available')
-            console.log('📝 Level deletion that would be submitted:')
-            console.log('Deleted level:', levelToDelete)
-            console.log('Updated levels.json:', JSON.stringify(currentData, null, 2))
-            
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            
-            return {
-                success: true,
-                message: `Level "${levelToDelete.levelName}" deleted successfully! (GitHub Pages - no backend submission) 📄`,
-                data: { deletedLevel: levelToDelete, updatedData: currentData },
-                isDevelopment: true,
-                isGitHubPages: isGitHubPages
-            }
+        return {
+            success: true,
+            message: `Level "${levelToDelete.levelName}" deleted successfully from database! 🗑️`,
+            data: { deletedLevel: levelToDelete }
         }
-
-        // Final safety check - should never reach here on GitHub Pages
-        if (window.location.hostname.includes('github.io')) {
-            console.error('🚨 ERROR: Attempting to call Netlify function on GitHub Pages!')
-            throw new Error('Cannot call Netlify functions on GitHub Pages. Deploy to Netlify for full functionality.')
-        }
-
-        // Send to backend API for staging branch update
-        const result = await fetch('/.netlify/functions/submit-level', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
-            body: JSON.stringify({
-                action: 'delete_level',
-                deletedLevel: levelToDelete,
-                updatedData: currentData,
-                targetBranch: 'main',
-                commitMessage: `Deleted Level from data list: ${levelToDelete.levelName}`
-            })
-        })
-
-        // Get response text first to debug
-        const resultText = await result.text()
-
-        if (!resultText || resultText.trim() === '') {
-            throw new Error('Netlify function returned empty response. Check function deployment and logs.')
-        }
-
-        // Try to parse as JSON
-        let responseData
-        try {
-            responseData = JSON.parse(resultText)
-        } catch (parseError) {
-            throw new Error(`Server returned invalid JSON. Response: ${resultText.substring(0, 200)}...`)
-        }
-
-        if (!result.ok) {
-            throw new Error(responseData.message || `HTTP ${result.status}: Failed to delete level`)
-        }
-
-        console.log('Level deleted successfully:', responseData)
-        
-        return responseData
         
     } catch (error) {
-        console.error('Error deleting level:', error)
+        console.error('Error deleting level from Supabase:', error)
         throw error
     }
 }

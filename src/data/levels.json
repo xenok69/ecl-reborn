@@ -58,33 +58,8 @@
         "difficulty": "Hard",
         "gamemode": "Mixed",
         "decorationStyle": "Effect",
-        "extraTags": [
-          "Epilepsy"
-        ]
+        "extraTags": ["Epilepsy"]
       }
-    },
-    {
-      "placement": 7,
-      "levelName": "test8787",
-      "creator": "test2",
-      "verifier": "test3",
-      "id": "235425323523523232222222222222222222222",
-      "youtubeVideoId": "xvFZjo5PgG0",
-      "tags": {
-        "difficulty": "Godlike",
-        "gamemode": "Mixed",
-        "decorationStyle": "1.0",
-        "extraTags": [
-          "Camera Abuse",
-          "Shader Abuse",
-          "Memory",
-          "CBF",
-          "Timing",
-          "Dual",
-          "Epilepsy"
-        ]
-      },
-      "addedDate": "2025-08-30"
     }
   ]
 }
