@@ -55,15 +55,14 @@ export const adminSubmitAction = async ({ request, params }) => {
     const decorationStyle = formData.get('decorationStyle')
     const selectedExtraTags = formData.getAll('selectedExtraTags')
 
-    // Validation
+    // Validation - only check required fields
     if (!levelName) errors.levelName = 'Level name is required'
     if (!placement) errors.placement = 'Placement is required'
     if (!creator) errors.creator = 'Creator is required'
     if (!verifier) errors.verifier = 'Verifier is required'
     if (!levelId) errors.levelId = 'Level ID is required'
-    if (!difficulty) errors.difficulty = 'Difficulty is required'
-    if (!gamemode) errors.gamemode = 'Gamemode is required'
-    if (!decorationStyle) errors.decorationStyle = 'Decoration style is required'
+    
+    // Optional fields - no validation needed
 
     // Validate placement is a number
     if (placement && isNaN(parseInt(placement))) {
@@ -84,10 +83,7 @@ export const adminSubmitAction = async ({ request, params }) => {
         }
     }
 
-    // Validate video (YouTube ID only for now - file uploads disabled due to Netlify limitations)
-    if (!youtubeVideoId) {
-        errors.video = 'YouTube video ID is required'
-    }
+    // Video is now optional - no validation needed
 
     if (Object.keys(errors).length > 0) {
         return { success: false, errors }
@@ -97,21 +93,23 @@ export const adminSubmitAction = async ({ request, params }) => {
         // Use YouTube video ID directly (file upload disabled due to Netlify limitations)
         let videoPath = youtubeVideoId
         
-        // Prepare level data
+        // Prepare level data for Supabase (required fields + optional fields)
         const levelData = {
+            id: levelId,
             placement: parseInt(placement),
             levelName,
             creator,
-            verifier,
-            id: levelId,
-            youtubeVideoId: videoPath,
-            tags: {
-                difficulty,
-                gamemode,
-                decorationStyle,
-                extraTags: selectedExtraTags
-            }
+            verifier  // verifier is required
         }
+        
+        // Add optional fields only if they have values
+        if (videoPath) levelData.youtubeVideoId = videoPath
+        if (difficulty) levelData.difficulty = difficulty
+        if (gamemode) levelData.gamemode = gamemode
+        if (decorationStyle) levelData.decorationStyle = decorationStyle
+        if (selectedExtraTags && selectedExtraTags.length > 0) levelData.extraTags = selectedExtraTags
+        
+        console.log('📝 Sending level data to Supabase:', levelData)
         
         // Add or update level in Supabase
         try {
