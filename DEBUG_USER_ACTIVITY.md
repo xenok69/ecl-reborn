@@ -52,12 +52,11 @@ CREATE TRIGGER trigger_update_user_activity_updated_at
 After deploying the changes, open your browser console and run:
 
 ```javascript
-// Import the test function
-import { supabaseOperations } from './src/lib/supabase.js';
-
 // Test if the table exists and is accessible
-await supabaseOperations.testUserActivityTable();
+await window.supabaseDebug.testUserActivityTable();
 ```
+
+The supabase operations are now exposed globally as `window.supabaseDebug` for easy testing.
 
 ### 3. Watch Console Logs
 When you log in, you should see these logs:
@@ -95,7 +94,10 @@ You can also manually test by running this in the browser console:
 
 ```javascript
 // Test with a fake user ID
-await supabaseOperations.updateUserActivity('123456789', { test: true });
+await window.supabaseDebug.updateUserActivity('123456789', { test: true });
+
+// Or test the table connection
+await window.supabaseDebug.testUserActivityTable();
 ```
 
 ## 📋 What the Logs Should Show
