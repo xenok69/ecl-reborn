@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS user_activity (
     id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE, -- Discord user ID
+    user_id TEXT NOT NULL UNIQUE, -- Discord user ID as text (they can be very large)
     last_online TIMESTAMPTZ DEFAULT NOW(),
     online BOOLEAN DEFAULT FALSE,
     completed_levels INTEGER[] DEFAULT '{}', -- Array of level IDs from the levels table

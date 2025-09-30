@@ -26,10 +26,11 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('discord_oauth_state');
 
           // Update user activity in Supabase when they login
+          console.log('🚀 New user login detected, updating activity for user:', userInfo.id)
           try {
             await supabaseOperations.updateUserActivity(userInfo.id);
           } catch (activityError) {
-            console.warn('Could not update user activity:', activityError);
+            console.warn('❌ Could not update user activity:', activityError);
           }
 
           window.location.hash = '';
@@ -49,10 +50,11 @@ export const AuthProvider = ({ children }) => {
             setIsLoading(false);
 
             // Update user activity for returning users
+            console.log('🔄 Returning user detected, updating activity for user:', parsedUser.id)
             try {
               await supabaseOperations.updateUserActivity(parsedUser.id);
             } catch (activityError) {
-              console.warn('Could not update user activity for returning user:', activityError);
+              console.warn('❌ Could not update user activity for returning user:', activityError);
             }
 
             // Then validate in the background

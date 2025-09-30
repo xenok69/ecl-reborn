@@ -311,18 +311,27 @@ export const supabaseOperations = {
 
   // User Activity Operations
   async updateUserActivity(userId, activityData = {}) {
+    console.log('🔄 updateUserActivity called with userId:', userId, 'activityData:', activityData)
+
     if (!supabase) {
-      console.warn('Supabase not configured, skipping user activity update')
+      console.warn('⚠️ Supabase not configured, skipping user activity update')
+      return null
+    }
+
+    if (!userId) {
+      console.error('❌ No userId provided to updateUserActivity')
       return null
     }
 
     try {
       const updateData = {
-        user_id: userId,
+        user_id: String(userId), // Ensure string format for Discord ID
         last_online: new Date().toISOString(),
         online: true,
         ...activityData
       }
+
+      console.log('📊 Attempting to upsert user activity data:', updateData)
 
       const { data, error } = await supabase
         .from('user_activity')
@@ -333,14 +342,20 @@ export const supabaseOperations = {
         .select()
 
       if (error) {
-        console.error('Error updating user activity:', error)
+        console.error('❌ Error updating user activity:', error)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
         throw error
       }
 
       console.log('✅ User activity updated successfully:', data)
       return data
     } catch (error) {
-      console.error('Supabase user activity update error:', error)
+      console.error('❌ Supabase user activity update error:', error)
       throw error
     }
   },
@@ -451,6 +466,41 @@ export const supabaseOperations = {
     } catch (error) {
       console.error('Supabase get user activity error:', error)
       throw error
+    }
+  },
+
+  // Test function for debugging
+  async testUserActivityTable() {
+    if (!supabase) {
+      console.warn('⚠️ Supabase not configured')
+      return false
+    }
+
+    try {
+      console.log('🧪 Testing user_activity table connection...')
+
+      // Try to select from the table to see if it exists
+      const { data, error } = await supabase
+        .from('user_activity')
+        .select('*')
+        .limit(1)
+
+      if (error) {
+        console.error('❌ Table test failed:', error)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        return false
+      }
+
+      console.log('✅ Table connection successful, sample data:', data)
+      return true
+    } catch (error) {
+      console.error('❌ Table test error:', error)
+      return false
     }
   }
 }
