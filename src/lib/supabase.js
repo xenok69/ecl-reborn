@@ -350,7 +350,6 @@ export const supabaseOperations = {
       const { data, error } = await supabase
         .from('user_activity')
         .upsert(updateData, {
-          onConflict: 'user_id',
           ignoreDuplicates: false
         })
         .select()
@@ -375,30 +374,47 @@ export const supabaseOperations = {
   },
 
   async setUserOffline(userId) {
+    console.log('🔄 setUserOffline called with userId:', userId)
+
     if (!supabase) {
-      console.warn('Supabase not configured, skipping offline status update')
+      console.warn('⚠️ Supabase not configured, skipping offline status update')
+      return null
+    }
+
+    if (!userId) {
+      console.error('❌ No userId provided to setUserOffline')
       return null
     }
 
     try {
+      const updateData = {
+        online: false,
+        last_online: new Date().toISOString()
+      }
+
+      console.log('📊 Attempting to set user offline:', { userId: String(userId), ...updateData })
+
       const { data, error } = await supabase
         .from('user_activity')
-        .update({
-          online: false,
-          last_online: new Date().toISOString()
-        })
-        .eq('user_id', userId)
+        .update(updateData)
+        .eq('user_id', String(userId))
         .select()
 
       if (error) {
-        console.error('Error setting user offline:', error)
+        console.error('❌ Error setting user offline:', error)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
         throw error
       }
 
       console.log('✅ User set offline successfully:', data)
       return data
     } catch (error) {
-      console.error('Supabase set offline error:', error)
+      console.error('❌ Supabase set offline error:', error)
       throw error
     }
   },
@@ -431,12 +447,11 @@ export const supabaseOperations = {
         const { data, error } = await supabase
           .from('user_activity')
           .upsert({
-            user_id: userId,
+            user_id: String(userId),
             completed_levels: updatedLevels,
             last_online: new Date().toISOString(),
             online: true
           }, {
-            onConflict: 'user_id',
             ignoreDuplicates: false
           })
           .select()

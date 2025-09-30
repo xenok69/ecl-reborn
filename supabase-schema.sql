@@ -1,9 +1,12 @@
 -- User Activity Tracking Table
 -- This table tracks user online status and completed levels
+-- Using Discord user_id as the primary key for easier queries
+
+-- Drop existing table if you need to recreate it
+-- DROP TABLE IF EXISTS user_activity;
 
 CREATE TABLE IF NOT EXISTS user_activity (
-    id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL UNIQUE, -- Discord user ID as text (they can be very large)
+    user_id TEXT PRIMARY KEY, -- Discord user ID as primary key
     last_online TIMESTAMPTZ DEFAULT NOW(),
     online BOOLEAN DEFAULT FALSE,
     completed_levels INTEGER[] DEFAULT '{}', -- Array of level IDs from the levels table
@@ -11,8 +14,7 @@ CREATE TABLE IF NOT EXISTS user_activity (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create index for faster queries
-CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON user_activity(user_id);
+-- Create indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_user_activity_online ON user_activity(online);
 CREATE INDEX IF NOT EXISTS idx_user_activity_last_online ON user_activity(last_online);
 
@@ -32,15 +34,20 @@ CREATE TRIGGER trigger_update_user_activity_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_user_activity_updated_at();
 
--- RLS (Row Level Security) policies if needed
+-- Disable RLS for now to allow the application to manage user activity
+-- You can enable RLS later if you implement Supabase Auth
+ALTER TABLE user_activity DISABLE ROW LEVEL SECURITY;
+
+-- Alternative: If you want to keep RLS enabled but allow your app to work,
+-- uncomment these policies (but you'll need to implement proper auth):
+--
 -- ALTER TABLE user_activity ENABLE ROW LEVEL SECURITY;
-
--- Example policies (uncomment if you want RLS):
--- CREATE POLICY "Users can view their own activity" ON user_activity
---     FOR SELECT USING (auth.uid()::text = user_id::text);
-
--- CREATE POLICY "Users can update their own activity" ON user_activity
---     FOR UPDATE USING (auth.uid()::text = user_id::text);
-
--- CREATE POLICY "Users can insert their own activity" ON user_activity
---     FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+--
+-- CREATE POLICY "Allow public read access" ON user_activity
+--     FOR SELECT USING (true);
+--
+-- CREATE POLICY "Allow public insert/update" ON user_activity
+--     FOR INSERT WITH CHECK (true);
+--
+-- CREATE POLICY "Allow public update" ON user_activity
+--     FOR UPDATE USING (true);

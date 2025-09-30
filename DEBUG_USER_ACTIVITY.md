@@ -73,12 +73,14 @@ When you log in, you should see these logs:
 **Look for:** "relation 'user_activity' does not exist"
 **Fix:** Run the updated SQL schema above
 
-### Issue 2: Permission Error
-**Look for:** "permission denied" or RLS errors
-**Fix:** Make sure your table has the right permissions, or disable RLS for testing:
+### Issue 2: Row Level Security (RLS) Error
+**Look for:** "new row violates row-level security policy" (Error code: 42501)
+**Fix:** This is the most common issue! Run this SQL in your Supabase dashboard:
 ```sql
 ALTER TABLE user_activity DISABLE ROW LEVEL SECURITY;
 ```
+
+RLS blocks writes because your app isn't using Supabase Auth. Disabling RLS allows your Discord-based auth to work.
 
 ### Issue 3: Data Type Mismatch
 **Look for:** Type conversion errors

@@ -192,17 +192,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    console.log('🚪 User signing out, user ID:', user?.id)
+
     if (user?.id) {
       try {
+        console.log('🔄 Setting user offline in database...')
         await supabaseOperations.setUserOffline(user.id);
+        console.log('✅ User set offline successfully')
       } catch (error) {
-        console.warn('Could not update offline status:', error);
+        console.warn('❌ Could not update offline status:', error);
       }
     }
 
     setUser(null);
     localStorage.removeItem('ecl-user');
     localStorage.removeItem('discord_oauth_state');
+    console.log('🧹 User state cleared')
   };
 
   const value = {
