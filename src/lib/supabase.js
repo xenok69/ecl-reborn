@@ -324,11 +324,25 @@ export const supabaseOperations = {
     }
 
     try {
-      const updateData = {
+      // Only include valid columns for the user_activity table
+      const validColumns = ['user_id', 'last_online', 'online', 'completed_levels'];
+      const baseData = {
         user_id: String(userId), // Ensure string format for Discord ID
         last_online: new Date().toISOString(),
-        online: true,
-        ...activityData
+        online: true
+      };
+
+      // Filter activityData to only include valid columns
+      const filteredActivityData = {};
+      Object.keys(activityData).forEach(key => {
+        if (validColumns.includes(key)) {
+          filteredActivityData[key] = activityData[key];
+        }
+      });
+
+      const updateData = {
+        ...baseData,
+        ...filteredActivityData
       }
 
       console.log('📊 Attempting to upsert user activity data:', updateData)
