@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import { DISCORD_CLIENT_ID, REDIRECT_URI } from '../config/discord.js';
+import { supabaseOperations } from '../lib/supabase.js';
 
 export const AuthContext = createContext();
 
@@ -23,9 +24,16 @@ export const AuthProvider = ({ children }) => {
           setUser(userInfo);
           localStorage.setItem('ecl-user', JSON.stringify(userInfo));
           localStorage.removeItem('discord_oauth_state');
-          
+
+          // Update user activity in Supabase when they login
+          try {
+            await supabaseOperations.updateUserActivity(userInfo.id);
+          } catch (activityError) {
+            console.warn('Could not update user activity:', activityError);
+          }
+
           window.location.hash = '';
-          
+
           const url = new URL(window.location);
           window.history.replaceState({}, document.title, url.pathname + url.search);
         } catch (error) {
@@ -39,6 +47,14 @@ export const AuthProvider = ({ children }) => {
             // Set user optimistically first
             setUser(parsedUser);
             setIsLoading(false);
+
+            // Update user activity for returning users
+            try {
+              await supabaseOperations.updateUserActivity(parsedUser.id);
+            } catch (activityError) {
+              console.warn('Could not update user activity for returning user:', activityError);
+            }
+
             // Then validate in the background
             validateUser(parsedUser).then(isValid => {
               if (!isValid) {
@@ -63,6 +79,25 @@ export const AuthProvider = ({ children }) => {
 
     handleDiscordCallback();
   }, []);
+
+  // Set user offline when page unloads
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (user?.id) {
+        // Use navigator.sendBeacon for reliable cleanup
+        if (navigator.sendBeacon) {
+          const data = new FormData();
+          data.append('userId', user.id);
+          data.append('action', 'setOffline');
+          // This would need a serverless function to handle the beacon
+          // For now, we'll just rely on session timeout
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [user]);
 
   const parseFragmentParams = () => {
     const fragment = window.location.hash.substring(1);
@@ -154,7 +189,15 @@ export const AuthProvider = ({ children }) => {
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    if (user?.id) {
+      try {
+        await supabaseOperations.setUserOffline(user.id);
+      } catch (error) {
+        console.warn('Could not update offline status:', error);
+      }
+    }
+
     setUser(null);
     localStorage.removeItem('ecl-user');
     localStorage.removeItem('discord_oauth_state');

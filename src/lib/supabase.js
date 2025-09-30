@@ -307,5 +307,150 @@ export const supabaseOperations = {
       console.error('Supabase metadata update error:', error)
       throw error
     }
+  },
+
+  // User Activity Operations
+  async updateUserActivity(userId, activityData = {}) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping user activity update')
+      return null
+    }
+
+    try {
+      const updateData = {
+        user_id: userId,
+        last_online: new Date().toISOString(),
+        online: true,
+        ...activityData
+      }
+
+      const { data, error } = await supabase
+        .from('user_activity')
+        .upsert(updateData, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
+        })
+        .select()
+
+      if (error) {
+        console.error('Error updating user activity:', error)
+        throw error
+      }
+
+      console.log('✅ User activity updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase user activity update error:', error)
+      throw error
+    }
+  },
+
+  async setUserOffline(userId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping offline status update')
+      return null
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_activity')
+        .update({
+          online: false,
+          last_online: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+
+      if (error) {
+        console.error('Error setting user offline:', error)
+        throw error
+      }
+
+      console.log('✅ User set offline successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase set offline error:', error)
+      throw error
+    }
+  },
+
+  async addCompletedLevel(userId, levelId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping completed level update')
+      return null
+    }
+
+    try {
+      // First get current user activity
+      const { data: currentActivity, error: fetchError } = await supabase
+        .from('user_activity')
+        .select('completed_levels')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error fetching current activity:', fetchError)
+        throw fetchError
+      }
+
+      const currentLevels = currentActivity?.completed_levels || []
+
+      // Add level if not already completed
+      if (!currentLevels.includes(levelId)) {
+        const updatedLevels = [...currentLevels, levelId]
+
+        const { data, error } = await supabase
+          .from('user_activity')
+          .upsert({
+            user_id: userId,
+            completed_levels: updatedLevels,
+            last_online: new Date().toISOString(),
+            online: true
+          }, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
+          })
+          .select()
+
+        if (error) {
+          console.error('Error adding completed level:', error)
+          throw error
+        }
+
+        console.log('✅ Completed level added successfully:', data)
+        return data
+      } else {
+        console.log('Level already completed:', levelId)
+        return currentActivity
+      }
+    } catch (error) {
+      console.error('Supabase add completed level error:', error)
+      throw error
+    }
+  },
+
+  async getUserActivity(userId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch user activity')
+      return null
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_activity')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error fetching user activity:', error)
+        throw error
+      }
+
+      return data || null
+    } catch (error) {
+      console.error('Supabase get user activity error:', error)
+      throw error
+    }
   }
 }
