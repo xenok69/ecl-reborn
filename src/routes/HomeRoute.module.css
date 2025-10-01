@@ -292,22 +292,120 @@
   margin-top: 1rem;
 }
 
-.legacyLink {
-  display: inline-block;
-  color: var(--color-purple);
-  text-decoration: none;
-  font-weight: 500;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-purple-30);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+.steps {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-white-10);
 }
 
-.legacyLink:hover {
-  background: var(--color-purple-10);
-  color: var(--color-purple-light);
-  transform: translateY(-1px);
+.stepsTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-white);
+  margin-bottom: 1rem;
+}
+
+.stepsList {
+  list-style: none;
+  counter-reset: step-counter;
+  padding: 0;
+  margin: 0;
+}
+
+.stepsList li {
+  counter-increment: step-counter;
+  position: relative;
+  padding: 0.75rem 0 0.75rem 3rem;
+  color: var(--color-gray);
+}
+
+.stepsList li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.moderatorDescription {
+  color: var(--color-gray);
+  margin-bottom: 1rem;
+}
+
+.quickLinks {
+  grid-column: 1 / -1;
+  background: var(--color-black-50);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-white-10);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.quickLinks::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-white-20), transparent);
+}
+
+.linkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.quickLinkCard {
+  background: var(--color-white-05);
+  border: 1px solid var(--color-white-10);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quickLinkCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px var(--color-black-50);
+  border-color: var(--color-white-30);
+  background: var(--color-white-10);
+}
+
+.quickLinkIcon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.quickLinkCard h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-white);
+}
+
+.quickLinkCard p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-gray);
 }
 
 /* Responsive Design */

@@ -13,6 +13,7 @@ import LeaderboardRoute, { leaderboardLoader } from "./routes/LeaderboardRoute.j
 import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
 import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
 import SearchRoute from "./routes/SearchRoute.jsx";
+import AboutRoute from "./routes/AboutRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
 
@@ -78,7 +79,7 @@ const router = createBrowserRouter([
       },
       {
         path: "about/",
-        element: <></>,
+        element: <AboutRoute />,
       },
       {
         path: "submit",
