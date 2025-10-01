@@ -17,26 +17,79 @@
     gap: 0.5rem;
 }
 
-.SearchBtn {
+/* Expanding Search Container */
+.SearchContainer {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
     width: 40px;
     height: 40px;
     background: var(--color-black-10);
     border: 1px solid var(--color-white-20);
     border-radius: 12px;
+    overflow: hidden;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.SearchContainer.Expanded {
+    width: 300px;
+    background: var(--color-white-20);
+    border-color: var(--color-white-50);
+    box-shadow: 0 0 15px var(--color-white-30);
+}
+
+.SearchInput {
+    position: absolute;
+    left: 12px;
+    right: 52px;
+    background: transparent;
+    border: none;
+    color: var(--color-white);
+    font-size: 0.95rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.SearchContainer.Expanded .SearchInput {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.15s;
+}
+
+.SearchInput:focus {
+    outline: none;
+}
+
+.SearchInput::placeholder {
+    color: var(--color-gray);
+}
+
+.SearchBtn {
+    position: absolute;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
     color: var(--color-gray);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .SearchBtn:hover {
-    background: var(--color-white-20);
-    border-color: var(--color-white-50);
     color: var(--color-white);
     transform: scale(1.1);
-    box-shadow: 0 0 15px var(--color-white-30);
+}
+
+.SearchContainer.Expanded .SearchBtn {
+    color: var(--color-white);
 }
 
 .ProfileBtn {
@@ -68,6 +121,14 @@
     font-weight: 700;
     font-size: 1.1rem;
     box-shadow: 0 4px 15px var(--color-black-30);
+    overflow: hidden;
+}
+
+.AvatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
 .OnlineIndicator {

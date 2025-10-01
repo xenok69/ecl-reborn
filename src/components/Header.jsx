@@ -4,12 +4,14 @@ import Navigation from "./Navigation";
 import ActionButtons from "./ActionButtons";
 import { useNavigate, useNavigation } from "react-router";
 import { useLoading } from "./LoadingContext";
+import { useAuth } from "../hooks/useAuth";
+import { useState } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
   const navigation = useNavigation();
   const { isLoading: contextLoading } = useLoading();
-  
+  const { user } = useAuth();
   // Show loading if either router navigation is happening OR context loading is true
   const isLoading = navigation.state === 'loading' || contextLoading;
 
@@ -34,12 +36,10 @@ export default function Header() {
     navigate("/");
   };
 
-  const handleSearchClick = () => {
-    console.log("Search clicked");
-  };
-
   const handleProfileClick = () => {
-    console.log("Profile clicked");
+    if (user?.id) {
+      navigate(`/profile/${user.id}`);
+    }
   };
 
   return (
@@ -49,14 +49,12 @@ export default function Header() {
       <div className={styles.HeaderContent}>
         <Logo onClick={handleLogoClick} />
 
-        <Navigation
-          navItems={navItems}
-        />
+        <Navigation navItems={navItems} />
 
         <ActionButtons
-          onSearchClick={handleSearchClick}
           onProfileClick={handleProfileClick}
           profileInitial="U"
+          navigate={navigate}
         />
       </div>
 

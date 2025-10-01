@@ -12,6 +12,7 @@ import AdminSubmitRoute, { adminSubmitAction, editLevelLoader } from "./routes/A
 import LeaderboardRoute, { leaderboardLoader } from "./routes/LeaderboardRoute.jsx";
 import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
 import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
+import SearchRoute from "./routes/SearchRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
 
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
         path: "level/:placement",
         element: <LevelDataRoute />,
         loader: levelDataLoader,
+      },
+      {
+        path: "search",
+        element: <SearchRoute />,
       },
       {
         path: "about/",

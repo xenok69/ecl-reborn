@@ -1,10 +1,34 @@
 import styles from './ActionButtons.module.css'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router'
+import { useState } from 'react'
 
-export default function ActionButtons({ onSearchClick, onProfileClick, profileInitial = 'U' }) {
+export default function ActionButtons({ onProfileClick, profileInitial = 'U', navigate: navigateProp }) {
     const { user, signOut, isAuthenticated } = useAuth();
-    const navigate = useNavigate();
+    const navigate = navigateProp || useNavigate();
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchClick = (e) => {
+        e.preventDefault();
+        if (isSearchExpanded) {
+            // Close the search
+            setIsSearchExpanded(false);
+            setSearchQuery('');
+        } else {
+            // Open the search
+            setIsSearchExpanded(true);
+        }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchExpanded(false);
+            setSearchQuery('');
+        }
+    };
 
     const handleProfileClick = () => {
         if (isAuthenticated) {
@@ -29,19 +53,51 @@ export default function ActionButtons({ onSearchClick, onProfileClick, profileIn
         return '?';
     };
 
+    const getAvatarUrl = () => {
+        if (user && user.id && user.avatar) {
+            return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
+        }
+        return null;
+    };
+
     return (
         <div className={styles.Actions}>
-            <button className={styles.SearchBtn} onClick={onSearchClick}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-            </button>
+            <form onSubmit={handleSearch} className={`${styles.SearchContainer} ${isSearchExpanded ? styles.Expanded : ''}`}>
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search users or levels..."
+                    className={styles.SearchInput}
+                    autoFocus={isSearchExpanded}
+                />
+                <button
+                    type="button"
+                    className={styles.SearchBtn}
+                    onClick={handleSearchClick}
+                >
+                    {isSearchExpanded ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                    ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                    )}
+                </button>
+            </form>
             {isAuthenticated ? (
                 <div className={styles.ProfileContainer}>
                     <button className={styles.ProfileBtn} onClick={handleProfileClick}>
                         <div className={styles.ProfileAvatar}>
-                            <span>{getProfileInitial()}</span>
+                            {getAvatarUrl() ? (
+                                <img src={getAvatarUrl()} alt={user?.username || 'Profile'} className={styles.AvatarImage} />
+                            ) : (
+                                <span>{getProfileInitial()}</span>
+                            )}
                         </div>
                         <div className={`${styles.OnlineIndicator} ${styles.Online}`}></div>
                     </button>
