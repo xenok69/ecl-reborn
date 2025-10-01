@@ -1,9 +1,10 @@
+import { createPortal } from 'react-dom'
 import styles from './ConfirmationDialog.module.css'
 
 export default function ConfirmationDialog({ isOpen, title, message, onConfirm, onCancel, confirmText = 'Confirm', cancelText = 'Cancel' }) {
     if (!isOpen) return null
 
-    return (
+    return createPortal(
         <div className={styles.Overlay}>
             <div className={styles.Blur} />
             <div className={styles.Dialog}>
@@ -20,6 +21,7 @@ export default function ConfirmationDialog({ isOpen, title, message, onConfirm, 
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
