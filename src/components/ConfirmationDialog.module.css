@@ -1,0 +1,199 @@
+/* Confirmation Dialog Overlay */
+.Overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Background Blur */
+.Blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-black-70);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Dialog Content */
+.Dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    background: var(--color-black-80);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid var(--color-white-20);
+    box-shadow: 0 8px 32px var(--color-black-50);
+    animation: scaleIn 0.3s ease-out 0.1s both;
+    min-width: 400px;
+    max-width: 500px;
+}
+
+/* Content Section */
+.Content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+}
+
+.Title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-white);
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.Message {
+    font-size: 1rem;
+    color: var(--color-gray);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Action Buttons */
+.Actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.CancelBtn,
+.ConfirmBtn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.CancelBtn {
+    background: var(--color-black-10);
+    border-color: var(--color-white-20);
+    color: var(--color-white);
+}
+
+.CancelBtn:hover {
+    background: var(--color-white-20);
+    border-color: var(--color-white-50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-black-30);
+}
+
+.ConfirmBtn {
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-white);
+}
+
+.ConfirmBtn:hover {
+    background: #c82333;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .Dialog {
+        padding: 1.5rem;
+        gap: 1.5rem;
+        min-width: 320px;
+        max-width: 90%;
+    }
+
+    .Title {
+        font-size: 1.3rem;
+    }
+
+    .Message {
+        font-size: 0.95rem;
+    }
+
+    .Actions {
+        gap: 0.75rem;
+    }
+
+    .CancelBtn,
+    .ConfirmBtn {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .Dialog {
+        padding: 1.25rem;
+        gap: 1.25rem;
+        margin: 1rem;
+    }
+
+    .Title {
+        font-size: 1.2rem;
+    }
+
+    .Message {
+        font-size: 0.9rem;
+    }
+
+    .Actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .CancelBtn,
+    .ConfirmBtn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .Overlay {
+        animation: none;
+    }
+
+    .Dialog {
+        animation: none;
+    }
+}

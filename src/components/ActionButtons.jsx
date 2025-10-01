@@ -2,12 +2,14 @@ import styles from './ActionButtons.module.css'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
+import ConfirmationDialog from './ConfirmationDialog'
 
 export default function ActionButtons({ onProfileClick, profileInitial = 'U', navigate: navigateProp }) {
     const { user, signOut, isAuthenticated } = useAuth();
     const navigate = navigateProp || useNavigate();
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
     const handleSearchClick = (e) => {
         e.preventDefault();
@@ -42,8 +44,17 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
 
     const handleSignOut = (e) => {
         e.stopPropagation();
+        setShowSignOutConfirm(true);
+    };
+
+    const confirmSignOut = () => {
+        setShowSignOutConfirm(false);
         signOut();
         navigate('/');
+    };
+
+    const cancelSignOut = () => {
+        setShowSignOutConfirm(false);
     };
 
     const getProfileInitial = () => {
@@ -61,8 +72,9 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
     };
 
     return (
-        <div className={styles.Actions}>
-            <form onSubmit={handleSearch} className={`${styles.SearchContainer} ${isSearchExpanded ? styles.Expanded : ''}`}>
+        <>
+            <div className={styles.Actions}>
+                <form onSubmit={handleSearch} className={`${styles.SearchContainer} ${isSearchExpanded ? styles.Expanded : ''}`}>
                 <input
                     type="text"
                     value={searchQuery}
@@ -114,6 +126,17 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
                     Sign In
                 </button>
             )}
-        </div>
+            </div>
+
+            <ConfirmationDialog
+                isOpen={showSignOutConfirm}
+                title="Sign Out"
+                message="Are you sure you want to sign out?"
+                onConfirm={confirmSignOut}
+                onCancel={cancelSignOut}
+                confirmText="Sign Out"
+                cancelText="Cancel"
+            />
+        </>
     )
 }
