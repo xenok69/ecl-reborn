@@ -1,6 +1,7 @@
 import { useLoaderData, useNavigate } from 'react-router'
 import { getLevels } from '../lib/levelUtils'
 import { supabaseOperations } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import styles from './LevelDataRoute.module.css'
 
 export const levelDataLoader = async ({ params }) => {
@@ -71,6 +72,7 @@ export const levelDataLoader = async ({ params }) => {
 export default function LevelDataRoute() {
     const { placement, level, completedBy, totalLevels, error } = useLoaderData()
     const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
 
     const isFirstLevel = placement === 1
     const isLastLevel = placement === totalLevels
@@ -219,58 +221,60 @@ export default function LevelDataRoute() {
                 )}
             </div>
 
-            {/* Completed By Table at Bottom */}
-            <div className={styles.completedBySection}>
-                <h2 className={styles.sectionTitle}>Players Who Completed This Level</h2>
+            {/* Completed By Table at Bottom - Protected */}
+            {isAuthenticated && (
+                <div className={styles.completedBySection}>
+                    <h2 className={styles.sectionTitle}>Players Who Completed This Level</h2>
 
-                {completedBy.length > 0 ? (
-                    <div className={styles.tableWrapper}>
-                        <table className={styles.completedTable}>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Player</th>
-                                    <th>Completed On</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {completedBy.map((player, index) => (
-                                    <tr key={player.userId}>
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            <div className={styles.playerCell}>
-                                                {player.avatar ? (
-                                                    <img
-                                                        src={`https://cdn.discordapp.com/avatars/${player.userId}/${player.avatar}.png?size=64`}
-                                                        alt={player.username}
-                                                        className={styles.playerAvatar}
-                                                    />
-                                                ) : (
-                                                    <div className={styles.playerAvatarPlaceholder}>
-                                                        {player.username.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                                <span className={styles.playerName}>{player.username}</span>
-                                            </div>
-                                        </td>
-                                        <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
-                                        <td>
-                                            <span className={player.online ? styles.statusOnline : styles.statusOffline}>
-                                                {player.online ? '🟢 Online' : '🔴 Offline'}
-                                            </span>
-                                        </td>
+                    {completedBy.length > 0 ? (
+                        <div className={styles.tableWrapper}>
+                            <table className={styles.completedTable}>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Player</th>
+                                        <th>Completed On</th>
+                                        <th>Status</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <div className={styles.noPlayers}>
-                        <p>No players have completed this level yet</p>
-                    </div>
-                )}
-            </div>
+                                </thead>
+                                <tbody>
+                                    {completedBy.map((player, index) => (
+                                        <tr key={player.userId}>
+                                            <td>{index + 1}</td>
+                                            <td>
+                                                <div className={styles.playerCell}>
+                                                    {player.avatar ? (
+                                                        <img
+                                                            src={`https://cdn.discordapp.com/avatars/${player.userId}/${player.avatar}.png?size=64`}
+                                                            alt={player.username}
+                                                            className={styles.playerAvatar}
+                                                        />
+                                                    ) : (
+                                                        <div className={styles.playerAvatarPlaceholder}>
+                                                            {player.username.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <span className={styles.playerName}>{player.username}</span>
+                                                </div>
+                                            </td>
+                                            <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
+                                            <td>
+                                                <span className={player.online ? styles.statusOnline : styles.statusOffline}>
+                                                    {player.online ? '🟢 Online' : '🔴 Offline'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className={styles.noPlayers}>
+                            <p>No players have completed this level yet</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className={styles.actions}>
                 <button onClick={() => navigate('/challenges')} className={styles.backBtn}>

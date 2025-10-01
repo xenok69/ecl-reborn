@@ -89,14 +89,22 @@ export default function LevelDisplay({
 
         {showActions && (
           <div className={styles.LevelActions}>
-            <button 
-              onClick={() => onEdit(id)}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(id);
+              }}
               className={styles.EditLevelBtn}
             >
               Edit Level
             </button>
-            <button 
-              onClick={() => onRemove(id)}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(id);
+              }}
               className={styles.RemoveLevelBtn}
             >
               Remove Level

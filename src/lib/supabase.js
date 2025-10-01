@@ -11,8 +11,13 @@ export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
+// Export supabase in operations for direct access
+export { supabase as supabaseClient }
+
 // Database operations
 export const supabaseOperations = {
+  // Expose supabase client
+  supabase,
   // Get all levels with metadata
   async getLevels() {
     if (!supabase) {

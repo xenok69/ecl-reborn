@@ -1,4 +1,4 @@
-import { useLoaderData } from 'react-router'
+import { useLoaderData, Link } from 'react-router'
 import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
 import styles from './UserProfileRoute.module.css'
@@ -17,7 +17,9 @@ export const userProfileLoader = async ({ params }) => {
                 error: 'User not found',
                 userId,
                 user: null,
-                completedLevels: []
+                completedLevels: [],
+                totalPoints: 0,
+                leaderboardRank: null
             }
         }
 
@@ -37,10 +39,49 @@ export const userProfileLoader = async ({ params }) => {
 
         console.log('✅ Debug - Matched Completed Levels:', completedLevels.length, completedLevels.map(l => l.levelName))
 
+        // Calculate total points from completed levels
+        const totalPoints = completedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+
+        // Calculate leaderboard rank
+        // Get all users and calculate their points to determine rank
+        let leaderboardRank = null
+        try {
+            const { data: allUsers } = await supabaseOperations.supabase
+                .from('user_activity')
+                .select('user_id, completed_levels')
+
+            if (allUsers) {
+                // Calculate points for each user
+                const userScores = allUsers.map(user => {
+                    const userCompletedLevels = allLevels.filter(level =>
+                        (user.completed_levels || []).some(id => String(id) === String(level.id))
+                    )
+                    const points = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+                    return {
+                        userId: user.user_id,
+                        points
+                    }
+                })
+
+                // Sort by points descending
+                userScores.sort((a, b) => b.points - a.points)
+
+                // Find rank (1-indexed)
+                const rankIndex = userScores.findIndex(u => u.userId === userId)
+                if (rankIndex !== -1) {
+                    leaderboardRank = rankIndex + 1
+                }
+            }
+        } catch (error) {
+            console.warn('Could not calculate leaderboard rank:', error)
+        }
+
         return {
             userId,
             user: userActivity,
             completedLevels,
+            totalPoints,
+            leaderboardRank,
             error: null
         }
     } catch (error) {
@@ -49,13 +90,15 @@ export const userProfileLoader = async ({ params }) => {
             error: error.message,
             userId: params.userId,
             user: null,
-            completedLevels: []
+            completedLevels: [],
+            totalPoints: 0,
+            leaderboardRank: null
         }
     }
 }
 
 export default function UserProfileRoute() {
-    const { userId, user, completedLevels, error } = useLoaderData()
+    const { userId, user, completedLevels, totalPoints, leaderboardRank, error } = useLoaderData()
 
     // Helper to get Discord avatar URL
     const getAvatarUrl = (userId, avatarHash) => {
@@ -120,6 +163,16 @@ export default function UserProfileRoute() {
                             <span className={styles.statLabel}>Completed Levels</span>
                         </div>
                         <div className={styles.statItem}>
+                            <span className={styles.statValue}>{totalPoints}</span>
+                            <span className={styles.statLabel}>Total Points</span>
+                        </div>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>
+                                {leaderboardRank ? `#${leaderboardRank}` : 'N/A'}
+                            </span>
+                            <span className={styles.statLabel}>Global Rank</span>
+                        </div>
+                        <div className={styles.statItem}>
                             <span className={styles.statValue}>
                                 {user.online ? '🟢 Online' : '🔴 Offline'}
                             </span>
@@ -139,31 +192,54 @@ export default function UserProfileRoute() {
                     <h3 className={styles.sectionTitle}>Completed Levels</h3>
 
                     {completedLevels.length > 0 ? (
-                        <div className={styles.levelsGrid}>
-                            {completedLevels.map((level) => (
-                                <div key={level.id} className={styles.levelCard}>
-                                    <div className={styles.levelHeader}>
-                                        <span className={styles.placement}>#{level.placement}</span>
-                                        <span className={styles.points}>{level.points} pts</span>
-                                    </div>
-                                    <h4 className={styles.levelName}>{level.levelName}</h4>
-                                    <p className={styles.levelCreator}>by {level.creator}</p>
-                                    {level.tags && (
-                                        <div className={styles.tags}>
-                                            {level.tags.difficulty && (
-                                                <span className={`${styles.tag} ${styles.difficultyTag}`}>
-                                                    {level.tags.difficulty}
-                                                </span>
-                                            )}
-                                            {level.tags.gamemode && (
-                                                <span className={`${styles.tag} ${styles.gamemodeTag}`}>
-                                                    {level.tags.gamemode}
-                                                </span>
-                                            )}
+                        <div className={styles.levelsList}>
+                            {completedLevels.map((level) => {
+                                const thumbnailUrl = level.youtubeVideoId
+                                    ? `https://img.youtube.com/vi/${level.youtubeVideoId}/maxresdefault.jpg`
+                                    : null
+
+                                return (
+                                    <Link
+                                        key={level.id}
+                                        to={`/level/${level.placement}`}
+                                        className={styles.levelListItem}
+                                    >
+                                        {thumbnailUrl && (
+                                            <div className={styles.levelThumbnail}>
+                                                <img src={thumbnailUrl} alt={level.levelName} className={styles.thumbnailImage} />
+                                                <div className={styles.thumbnailGradient}></div>
+                                            </div>
+                                        )}
+                                        <div className={styles.textFog}></div>
+                                        <div className={styles.levelListContent}>
+                                            <div className={styles.levelListLeft}>
+                                                <span className={styles.levelListPlacement}>#{level.placement}</span>
+                                                <div className={styles.levelListInfo}>
+                                                    <h4 className={styles.levelListName}>{level.levelName}</h4>
+                                                    <p className={styles.levelListCreator}>by {level.creator}</p>
+                                                </div>
+                                            </div>
+                                            <div className={styles.levelListRight}>
+                                                <span className={styles.levelListPoints}>{level.points} pts</span>
+                                                {level.tags && (
+                                                    <div className={styles.levelListTags}>
+                                                        {level.tags.difficulty && (
+                                                            <span className={styles.levelListTag}>
+                                                                {level.tags.difficulty}
+                                                            </span>
+                                                        )}
+                                                        {level.tags.gamemode && (
+                                                            <span className={styles.levelListTag}>
+                                                                {level.tags.gamemode}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    </Link>
+                                )
+                            })}
                         </div>
                     ) : (
                         <div className={styles.noLevels}>

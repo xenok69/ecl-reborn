@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useLoaderData, useNavigation, useNavigate } from 'react-router'
+import { useParams, useLoaderData, useNavigation, useNavigate, Link } from 'react-router'
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
 import { useAdmin } from '../hooks/useAdmin'
@@ -156,19 +156,21 @@ export default function ChallengesRoute() {
                 {currentLevels.length > 0 ? (
                     currentLevels.map((level) => (
                         <div key={level.id} className={styles.LevelItem}>
-                            <LevelDisplay
-                                placement={level.placement}
-                                levelName={level.levelName}
-                                creator={level.creator}
-                                verifier={level.verifier}
-                                id={level.id}
-                                points={level.points}
-                                youtubeVideoId={level.youtubeVideoId}
-                                tags={level.tags}
-                                showActions={isAdmin}
-                                onEdit={handleEditLevel}
-                                onRemove={handleRemoveLevel}
-                            />
+                            <Link to={`/level/${level.placement}`} className={styles.LevelLink}>
+                                <LevelDisplay
+                                    placement={level.placement}
+                                    levelName={level.levelName}
+                                    creator={level.creator}
+                                    verifier={level.verifier}
+                                    id={level.id}
+                                    points={level.points}
+                                    youtubeVideoId={level.youtubeVideoId}
+                                    tags={level.tags}
+                                    showActions={isAdmin}
+                                    onEdit={handleEditLevel}
+                                    onRemove={handleRemoveLevel}
+                                />
+                            </Link>
                         </div>
                     ))
                 ) : (

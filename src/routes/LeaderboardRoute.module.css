@@ -1,0 +1,255 @@
+/* Leaderboard Container */
+.leaderboardContainer {
+    min-height: 100vh;
+    padding: 100px 2rem 2rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    background: linear-gradient(135deg, var(--color-white) 0%, var(--color-near-white) 50%, var(--color-white) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-gray);
+    margin: 0;
+}
+
+/* Leaderboard Card */
+.leaderboardCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.leaderboardTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboardTable thead {
+    background: var(--color-black-30);
+}
+
+.leaderboardTable th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+    border-bottom: 2px solid var(--color-white-10);
+}
+
+.leaderboardRow {
+    border-bottom: 1px solid var(--color-white-10);
+    transition: background 0.2s ease;
+}
+
+.leaderboardRow:hover {
+    background: var(--color-black-30);
+}
+
+.leaderboardTable td {
+    padding: 1rem;
+    color: var(--color-white);
+    font-size: 1rem;
+}
+
+/* Rank Styling */
+.rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.rank1 {
+    color: #FFD700;
+}
+
+.rank2 {
+    color: #C0C0C0;
+}
+
+.rank3 {
+    color: #CD7F32;
+}
+
+/* Player Cell */
+.playerLink {
+    text-decoration: none;
+    color: inherit;
+}
+
+.playerLink:hover .playerName {
+    color: var(--color-blue);
+}
+
+.playerCell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.playerAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--color-blue-30);
+}
+
+.playerAvatarPlaceholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-white);
+    border: 2px solid var(--color-blue-30);
+}
+
+.playerName {
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.pointsValue {
+    font-weight: 700;
+    color: var(--color-gold);
+    font-size: 1.1rem;
+}
+
+.statusOnline {
+    font-size: 1.2rem;
+}
+
+.statusOffline {
+    font-size: 1.2rem;
+    opacity: 0.5;
+}
+
+/* No Players */
+.noPlayers {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-gray);
+    font-size: 1.1rem;
+}
+
+/* Error Card */
+.errorCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-error);
+    box-shadow: 0 8px 32px var(--color-black-30);
+    text-align: center;
+}
+
+.errorCard h2 {
+    color: var(--color-error);
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+}
+
+.errorCard p {
+    color: var(--color-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .leaderboardContainer {
+        padding: 90px 1rem 2rem 1rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .leaderboardCard {
+        padding: 1rem;
+    }
+
+    .leaderboardTable th,
+    .leaderboardTable td {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .playerCell {
+        gap: 0.5rem;
+    }
+
+    .playerAvatar,
+    .playerAvatarPlaceholder {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboardContainer {
+        padding: 80px 0.75rem 1rem 0.75rem;
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 1.8rem;
+    }
+
+    .leaderboardCard {
+        padding: 0.75rem;
+    }
+
+    .leaderboardTable th,
+    .leaderboardTable td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+}

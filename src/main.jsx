@@ -9,7 +9,7 @@ import HomeRoute from "./routes/HomeRoute.jsx";
 import ChallengesRoute, { challengesLoader } from "./routes/ChallengesRoute.jsx";
 import SignInRoute from "./routes/SignInRoute.jsx";
 import AdminSubmitRoute, { adminSubmitAction, editLevelLoader } from "./routes/AdminSubmitRoute.jsx";
-import LeaderboardRoute from "./routes/LeaderboardRoute.jsx";
+import LeaderboardRoute, { leaderboardLoader } from "./routes/LeaderboardRoute.jsx";
 import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
 import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -55,10 +55,15 @@ const router = createBrowserRouter([
             <LeaderboardRoute />
           </ProtectedRoute>
         ),
+        loader: leaderboardLoader,
       },
       {
         path: "profile/:userId",
-        element: <UserProfileRoute />,
+        element: (
+          <ProtectedRoute>
+            <UserProfileRoute />
+          </ProtectedRoute>
+        ),
         loader: userProfileLoader,
       },
       {
