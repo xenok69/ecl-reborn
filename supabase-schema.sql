@@ -7,6 +7,8 @@
 
 CREATE TABLE IF NOT EXISTS user_activity (
     user_id TEXT PRIMARY KEY, -- Discord user ID as primary key
+    username TEXT, -- Discord username/display name
+    avatar TEXT, -- Discord avatar hash
     last_online TIMESTAMPTZ DEFAULT NOW(),
     online BOOLEAN DEFAULT FALSE,
     completed_levels INTEGER[] DEFAULT '{}', -- Array of level IDs from the levels table

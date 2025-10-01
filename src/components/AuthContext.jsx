@@ -25,10 +25,13 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('ecl-user', JSON.stringify(userInfo));
           localStorage.removeItem('discord_oauth_state');
 
-          // Update user activity in Supabase when they login
+          // Update user activity in Supabase when they login with username and avatar
           console.log('🚀 New user login detected, updating activity for user:', userInfo.id)
           try {
-            await supabaseOperations.updateUserActivity(userInfo.id);
+            await supabaseOperations.updateUserActivity(userInfo.id, {
+              username: userInfo.username,
+              avatar: userInfo.avatar
+            });
           } catch (activityError) {
             console.warn('❌ Could not update user activity:', activityError);
           }
@@ -49,10 +52,13 @@ export const AuthProvider = ({ children }) => {
             setUser(parsedUser);
             setIsLoading(false);
 
-            // Update user activity for returning users
+            // Update user activity for returning users with username and avatar
             console.log('🔄 Returning user detected, updating activity for user:', parsedUser.id)
             try {
-              await supabaseOperations.updateUserActivity(parsedUser.id);
+              await supabaseOperations.updateUserActivity(parsedUser.id, {
+                username: parsedUser.username,
+                avatar: parsedUser.avatar
+              });
             } catch (activityError) {
               console.warn('❌ Could not update user activity for returning user:', activityError);
             }

@@ -325,7 +325,7 @@ export const supabaseOperations = {
 
     try {
       // Only include valid columns for the user_activity table
-      const validColumns = ['user_id', 'last_online', 'online', 'completed_levels'];
+      const validColumns = ['user_id', 'username', 'avatar', 'last_online', 'online', 'completed_levels'];
       const baseData = {
         user_id: String(userId), // Ensure string format for Discord ID
         last_online: new Date().toISOString(),

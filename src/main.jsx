@@ -10,6 +10,8 @@ import ChallengesRoute, { challengesLoader } from "./routes/ChallengesRoute.jsx"
 import SignInRoute from "./routes/SignInRoute.jsx";
 import AdminSubmitRoute, { adminSubmitAction, editLevelLoader } from "./routes/AdminSubmitRoute.jsx";
 import LeaderboardRoute from "./routes/LeaderboardRoute.jsx";
+import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
+import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
 
@@ -53,6 +55,16 @@ const router = createBrowserRouter([
             <LeaderboardRoute />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "profile/:userId",
+        element: <UserProfileRoute />,
+        loader: userProfileLoader,
+      },
+      {
+        path: "level/:placement",
+        element: <LevelDataRoute />,
+        loader: levelDataLoader,
       },
       {
         path: "about/",

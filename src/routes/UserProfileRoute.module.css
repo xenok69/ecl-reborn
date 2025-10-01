@@ -1,0 +1,347 @@
+/* Profile Container */
+.profileContainer {
+    min-height: 100vh;
+    padding: 100px 2rem 2rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, var(--color-white) 0%, var(--color-near-white) 50%, var(--color-white) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Profile Content Layout */
+.profileContent {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* User Info Card - Left Side */
+.userInfoCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+    text-align: center;
+    position: sticky;
+    top: 120px;
+}
+
+.avatarSection {
+    margin-bottom: 1.5rem;
+}
+
+.avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid var(--color-blue);
+    box-shadow: 0 8px 24px var(--color-blue-30);
+}
+
+.avatarPlaceholder {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-white);
+    margin: 0 auto;
+    border: 3px solid var(--color-blue-light);
+    box-shadow: 0 8px 24px var(--color-blue-30);
+}
+
+.displayName {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-white);
+}
+
+.userId {
+    font-size: 0.9rem;
+    color: var(--color-gray);
+    margin: 0 0 2rem 0;
+    font-family: monospace;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.statItem {
+    background: var(--color-black-30);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-white);
+}
+
+.statLabel {
+    font-size: 0.85rem;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lastOnline {
+    font-size: 0.85rem;
+    color: var(--color-gray);
+    margin: 1rem 0 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-white-10);
+}
+
+/* Completed Levels Card - Right Side */
+.completedLevelsCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 8px 32px var(--color-black-30);
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem 0;
+    color: var(--color-white);
+}
+
+.levelsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.levelCard {
+    background: var(--color-black-30);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    transition: all 0.3s ease;
+}
+
+.levelCard:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-blue);
+    box-shadow: 0 8px 24px var(--color-blue-20);
+}
+
+.levelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.placement {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-blue);
+}
+
+.points {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-gold);
+    background: var(--color-gold-10);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+}
+
+.levelName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-white);
+}
+
+.levelCreator {
+    font-size: 0.9rem;
+    color: var(--color-gray);
+    margin: 0 0 1rem 0;
+}
+
+.tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficultyTag {
+    background: var(--color-purple-20);
+    color: var(--color-purple-light);
+    border: 1px solid var(--color-purple);
+}
+
+.gamemodeTag {
+    background: var(--color-green-20);
+    color: var(--color-green-light);
+    border: 1px solid var(--color-green);
+}
+
+.noLevels {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-gray);
+    font-size: 1.1rem;
+}
+
+/* Error Card */
+.errorCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-error);
+    box-shadow: 0 8px 32px var(--color-black-30);
+    text-align: center;
+}
+
+.errorCard h2 {
+    color: var(--color-error);
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+}
+
+.errorCard p {
+    color: var(--color-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .profileContent {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .userInfoCard {
+        position: static;
+    }
+
+    .levelsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .profileContainer {
+        padding: 90px 1rem 2rem 1rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .userInfoCard,
+    .completedLevelsCard {
+        padding: 1.5rem;
+    }
+
+    .avatar,
+    .avatarPlaceholder {
+        width: 120px;
+        height: 120px;
+    }
+
+    .avatarPlaceholder {
+        font-size: 3rem;
+    }
+
+    .displayName {
+        font-size: 1.5rem;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .levelsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profileContainer {
+        padding: 80px 0.75rem 1rem 0.75rem;
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 1.8rem;
+    }
+
+    .userInfoCard,
+    .completedLevelsCard {
+        padding: 1rem;
+    }
+
+    .avatar,
+    .avatarPlaceholder {
+        width: 100px;
+        height: 100px;
+    }
+
+    .avatarPlaceholder {
+        font-size: 2.5rem;
+    }
+}

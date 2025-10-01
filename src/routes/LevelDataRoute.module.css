@@ -1,0 +1,479 @@
+/* Level Container */
+.levelContainer {
+    min-height: 100vh;
+    padding: 100px 2rem 2rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navigation Bar */
+.navigationBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 16px var(--color-black-30);
+}
+
+.navBtn {
+    padding: 0.75rem 1.25rem;
+    background: var(--color-black-30);
+    border: 1px solid var(--color-white-20);
+    border-radius: 8px;
+    color: var(--color-white);
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 50px;
+}
+
+.navBtn:hover:not(.disabled) {
+    background: var(--color-blue);
+    border-color: var(--color-blue-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-blue-30);
+}
+
+.navBtn:active:not(.disabled) {
+    transform: translateY(0);
+}
+
+.navBtn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: var(--color-gray);
+}
+
+.navInfo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-white);
+    padding: 0 1rem;
+    white-space: nowrap;
+}
+
+/* Compact Header Section - Pointercrate Style */
+.levelHeader {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 16px var(--color-black-30);
+    margin-bottom: 1.5rem;
+}
+
+.headerTop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.placementBadge {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-blue);
+    background: var(--color-blue-10);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-blue-30);
+    flex-shrink: 0;
+}
+
+.levelTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-white);
+    line-height: 1.2;
+}
+
+/* Metadata Grid - Information Dense */
+.metadataGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.metadataItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.metaLabel {
+    font-size: 0.75rem;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.metaValue {
+    font-size: 1rem;
+    color: var(--color-white);
+    font-weight: 500;
+}
+
+/* Inline Badges for Extra Tags */
+.extraTagsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.inlineBadge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    background: var(--color-white-10);
+    color: var(--color-white);
+    border: 1px solid var(--color-white-20);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.inlineBadge:hover {
+    background: var(--color-white-20);
+    border-color: var(--color-white-30);
+}
+
+/* Video Section - Smaller, Separated */
+.videoSection {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 16px var(--color-black-30);
+    margin-bottom: 1.5rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.videoWrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--color-black-50);
+}
+
+.videoFrame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+/* Completed By Section - Table at Bottom */
+.completedBySection {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 16px var(--color-black-30);
+    margin-bottom: 2rem;
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem 0;
+    color: var(--color-white);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.completedTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.completedTable thead {
+    background: var(--color-black-30);
+}
+
+.completedTable th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    border-bottom: 1px solid var(--color-white-10);
+}
+
+.completedTable tbody tr {
+    border-bottom: 1px solid var(--color-white-10);
+    transition: background 0.2s ease;
+}
+
+.completedTable tbody tr:hover {
+    background: var(--color-black-20);
+}
+
+.completedTable td {
+    padding: 0.75rem 1rem;
+    color: var(--color-white);
+    font-size: 0.9rem;
+}
+
+.playerCell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.playerAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--color-blue-30);
+}
+
+.playerAvatarPlaceholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--color-white);
+    border: 2px solid var(--color-blue-30);
+}
+
+.playerName {
+    font-weight: 500;
+    color: var(--color-white);
+}
+
+.statusOnline {
+    color: var(--color-success);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.statusOffline {
+    color: var(--color-gray);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.noPlayers {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-gray);
+    font-size: 1rem;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.backBtn {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-black-30);
+    border: 1px solid var(--color-white-20);
+    border-radius: 8px;
+    color: var(--color-white);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+    background: var(--color-black-50);
+    border-color: var(--color-white-30);
+    transform: translateY(-1px);
+}
+
+/* Error Card */
+.errorCard {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 3rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-error);
+    box-shadow: 0 4px 16px var(--color-black-30);
+    text-align: center;
+}
+
+.errorCard h2 {
+    color: var(--color-error);
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+}
+
+.errorCard p {
+    color: var(--color-gray);
+    font-size: 1.1rem;
+    margin: 0 0 2rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .levelContainer {
+        padding: 90px 1.5rem 2rem 1.5rem;
+    }
+
+    .levelTitle {
+        font-size: 2rem;
+    }
+
+    .metadataGrid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .levelContainer {
+        padding: 90px 1rem 2rem 1rem;
+    }
+
+    .navigationBar {
+        padding: 0.75rem;
+        gap: 0.35rem;
+    }
+
+    .navBtn {
+        padding: 0.6rem 1rem;
+        font-size: 1.3rem;
+        min-width: 45px;
+    }
+
+    .navInfo {
+        font-size: 0.9rem;
+        padding: 0 0.5rem;
+    }
+
+    .videoSection {
+        max-width: 100%;
+        padding: 1rem;
+    }
+
+    .levelHeader,
+    .completedBySection {
+        padding: 1.5rem;
+    }
+
+    .levelTitle {
+        font-size: 1.8rem;
+    }
+
+    .placementBadge {
+        font-size: 1.2rem;
+        padding: 0.3rem 0.8rem;
+    }
+
+    .metadataGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .completedTable {
+        font-size: 0.85rem;
+    }
+
+    .completedTable th,
+    .completedTable td {
+        padding: 0.6rem 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .levelContainer {
+        padding: 80px 0.75rem 1rem 0.75rem;
+    }
+
+    .navigationBar {
+        padding: 0.5rem;
+        gap: 0.25rem;
+    }
+
+    .navBtn {
+        padding: 0.5rem 0.75rem;
+        font-size: 1.2rem;
+        min-width: 40px;
+    }
+
+    .navInfo {
+        font-size: 0.85rem;
+        padding: 0 0.35rem;
+    }
+
+    .videoSection {
+        padding: 0.75rem;
+    }
+
+    .levelHeader,
+    .completedBySection {
+        padding: 1rem;
+    }
+
+    .headerTop {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .levelTitle {
+        font-size: 1.5rem;
+    }
+
+    .placementBadge {
+        font-size: 1rem;
+    }
+
+    .metadataGrid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .sectionTitle {
+        font-size: 1.3rem;
+    }
+
+    .completedTable th,
+    .completedTable td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .playerCell {
+        gap: 0.5rem;
+    }
+
+    .playerAvatar,
+    .playerAvatarPlaceholder {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+}
