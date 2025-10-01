@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS user_activity (
     avatar TEXT, -- Discord avatar hash
     last_online TIMESTAMPTZ DEFAULT NOW(),
     online BOOLEAN DEFAULT FALSE,
-    completed_levels INTEGER[] DEFAULT '{}', -- Array of level IDs from the levels table
+    completed_levels JSONB DEFAULT '[]'::jsonb, -- Array of objects: [{lvl: id, yt: "url", completedAt: "timestamp"}, ...]
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

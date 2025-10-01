@@ -318,6 +318,33 @@
     letter-spacing: 0.5px;
 }
 
+.youtubeButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+    color: var(--color-white);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+}
+
+.youtubeButton:hover {
+    background: linear-gradient(135deg, #FF3333 0%, #FF0000 100%);
+    box-shadow: 0 4px 16px rgba(255, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+.youtubeButton::before {
+    content: '▶';
+    font-size: 0.8rem;
+}
+
 .noLevels {
     text-align: center;
     padding: 3rem;

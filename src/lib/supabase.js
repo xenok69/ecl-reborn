@@ -424,7 +424,7 @@ export const supabaseOperations = {
     }
   },
 
-  async addCompletedLevel(userId, levelId) {
+  async addCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null) {
     if (!supabase) {
       console.warn('Supabase not configured, skipping completed level update')
       return null
@@ -445,9 +445,16 @@ export const supabaseOperations = {
 
       const currentLevels = currentActivity?.completed_levels || []
 
-      // Add level if not already completed
-      if (!currentLevels.includes(levelId)) {
-        const updatedLevels = [...currentLevels, levelId]
+      // Check if level already completed
+      const levelExists = currentLevels.some(entry => entry.lvl === levelId)
+
+      if (!levelExists) {
+        const newEntry = {
+          lvl: levelId,
+          yt: youtubeLink,
+          completedAt: completedAt || new Date().toISOString()
+        }
+        const updatedLevels = [...currentLevels, newEntry]
 
         const { data, error } = await supabase
           .from('user_activity')
@@ -512,20 +519,23 @@ export const supabaseOperations = {
     try {
       console.log('🔍 Searching for users who completed level ID:', levelId)
 
-      // Query for users who have this level ID in their completed_levels array
-      // The @> operator checks if the array contains the element
+      // Get all users and filter in JavaScript since JSONB querying is complex
       const { data, error } = await supabase
         .from('user_activity')
         .select('*')
-        .contains('completed_levels', [String(levelId)])
 
       if (error) {
         console.error('Error fetching users who completed level:', error)
         throw error
       }
 
-      console.log('✅ Found users who completed this level:', data?.length || 0)
-      return data || []
+      // Filter users who have completed this level
+      const usersWithLevel = data?.filter(user =>
+        user.completed_levels?.some(entry => entry.lvl === levelId)
+      ) || []
+
+      console.log('✅ Found users who completed this level:', usersWithLevel.length)
+      return usersWithLevel
     } catch (error) {
       console.error('Supabase get users who completed level error:', error)
       throw error

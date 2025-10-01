@@ -25,17 +25,26 @@ export const userProfileLoader = async ({ params }) => {
 
         // Fetch all levels to get details of completed levels
         const allLevels = await getLevels()
-        const completedLevelIds = userActivity.completed_levels || []
+        const completedLevelData = userActivity.completed_levels || []
 
-        console.log('🔍 Debug - Completed Level IDs from DB:', completedLevelIds)
+        console.log('🔍 Debug - Completed Level Data from DB:', completedLevelData)
         console.log('🔍 Debug - Sample level IDs:', allLevels.slice(0, 3).map(l => l.id))
 
-        // Match levels by their ID field
-        const completedLevels = allLevels.filter(level => {
-            // Convert both to strings for comparison since completed_levels might be stored as strings or numbers
-            const levelId = String(level.id)
-            return completedLevelIds.some(completedId => String(completedId) === levelId)
-        })
+        // Match levels by their ID field and add YouTube link from completed_levels
+        const completedLevels = allLevels
+            .filter(level => {
+                const levelId = String(level.id)
+                return completedLevelData.some(entry => String(entry.lvl) === levelId)
+            })
+            .map(level => {
+                // Find the completion entry to get YouTube link
+                const completionEntry = completedLevelData.find(entry => String(entry.lvl) === String(level.id))
+                return {
+                    ...level,
+                    youtubeLink: completionEntry?.yt || null,
+                    completedAt: completionEntry?.completedAt || null
+                }
+            })
 
         console.log('✅ Debug - Matched Completed Levels:', completedLevels.length, completedLevels.map(l => l.levelName))
 
@@ -53,8 +62,9 @@ export const userProfileLoader = async ({ params }) => {
             if (allUsers) {
                 // Calculate points for each user
                 const userScores = allUsers.map(user => {
+                    const userCompletedData = user.completed_levels || []
                     const userCompletedLevels = allLevels.filter(level =>
-                        (user.completed_levels || []).some(id => String(id) === String(level.id))
+                        userCompletedData.some(entry => String(entry.lvl) === String(level.id))
                     )
                     const points = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
                     return {
@@ -221,19 +231,16 @@ export default function UserProfileRoute() {
                                             </div>
                                             <div className={styles.levelListRight}>
                                                 <span className={styles.levelListPoints}>{level.points} pts</span>
-                                                {level.tags && (
-                                                    <div className={styles.levelListTags}>
-                                                        {level.tags.difficulty && (
-                                                            <span className={styles.levelListTag}>
-                                                                {level.tags.difficulty}
-                                                            </span>
-                                                        )}
-                                                        {level.tags.gamemode && (
-                                                            <span className={styles.levelListTag}>
-                                                                {level.tags.gamemode}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                {level.youtubeLink && (
+                                                    <a
+                                                        href={level.youtubeLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.youtubeButton}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        Watch Video
+                                                    </a>
                                                 )}
                                             </div>
                                         </div>

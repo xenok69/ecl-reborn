@@ -9,6 +9,7 @@ import HomeRoute from "./routes/HomeRoute.jsx";
 import ChallengesRoute, { challengesLoader } from "./routes/ChallengesRoute.jsx";
 import SignInRoute from "./routes/SignInRoute.jsx";
 import AdminSubmitRoute, { adminSubmitAction, editLevelLoader } from "./routes/AdminSubmitRoute.jsx";
+import AdminCompletionsRoute, { adminCompletionsAction } from "./routes/AdminCompletionsRoute.jsx";
 import LeaderboardRoute, { leaderboardLoader } from "./routes/LeaderboardRoute.jsx";
 import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
 import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
@@ -89,6 +90,15 @@ const router = createBrowserRouter([
           </AdminProtectedRoute>
         ),
         action: adminSubmitAction,
+      },
+      {
+        path: "admin/completions",
+        element: (
+          <AdminProtectedRoute>
+            <AdminCompletionsRoute />
+          </AdminProtectedRoute>
+        ),
+        action: adminCompletionsAction,
       },
     ],
   },
