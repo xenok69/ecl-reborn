@@ -33,8 +33,9 @@ export const searchLoader = async ({ request }) => {
     // Calculate points for matched users
     const allLevels = await getLevels()
     const usersWithPoints = matchedUsers.map(user => {
+      const completedLevelData = user.completed_levels || []
       const userCompletedLevels = allLevels.filter(level =>
-        (user.completed_levels || []).some(id => String(id) === String(level.id))
+        completedLevelData.some(entry => String(entry.lvl) === String(level.id))
       )
       const points = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
 
@@ -42,7 +43,7 @@ export const searchLoader = async ({ request }) => {
         userId: user.user_id,
         username: user.username || 'Unknown User',
         avatar: user.avatar,
-        completedLevels: user.completed_levels?.length || 0,
+        completedLevels: completedLevelData.length || 0,
         points,
         online: user.online
       }
@@ -99,8 +100,9 @@ export default function SearchRoute() {
 
         const allLevels = await getLevels()
         const usersWithPoints = matchedUsers.map(user => {
+          const completedLevelData = user.completed_levels || []
           const userCompletedLevels = allLevels.filter(level =>
-            (user.completed_levels || []).some(id => String(id) === String(level.id))
+            completedLevelData.some(entry => String(entry.lvl) === String(level.id))
           )
           const points = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
 
@@ -108,7 +110,7 @@ export default function SearchRoute() {
             userId: user.user_id,
             username: user.username || 'Unknown User',
             avatar: user.avatar,
-            completedLevels: user.completed_levels?.length || 0,
+            completedLevels: completedLevelData.length || 0,
             points,
             online: user.online
           }

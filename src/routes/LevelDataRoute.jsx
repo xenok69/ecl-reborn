@@ -1,7 +1,8 @@
-import { useLoaderData, useNavigate } from 'react-router'
+import { useLoaderData, useNavigate, Link } from 'react-router'
 import { getLevels } from '../lib/levelUtils'
 import { supabaseOperations } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useAdmin } from '../hooks/useAdmin'
 import styles from './LevelDataRoute.module.css'
 
 export const levelDataLoader = async ({ params }) => {
@@ -38,13 +39,19 @@ export const levelDataLoader = async ({ params }) => {
         let completedBy = []
         try {
             const users = await supabaseOperations.getUsersWhoCompletedLevel(level.id)
-            completedBy = users.map((user, index) => ({
-                userId: user.user_id,
-                username: user.username || 'Unknown User',
-                avatar: user.avatar,
-                completedOn: user.updated_at,
-                online: user.online
-            }))
+            completedBy = users.map((user, index) => {
+                // Find the completion entry for this specific level
+                const completionEntry = user.completed_levels?.find(entry => String(entry.lvl) === String(level.id))
+                return {
+                    userId: user.user_id,
+                    username: user.username || 'Unknown User',
+                    avatar: user.avatar,
+                    completedOn: completionEntry?.completedAt || user.updated_at,
+                    online: user.online
+                }
+            })
+            // Sort by completion date, most recent first
+            completedBy.sort((a, b) => new Date(b.completedOn) - new Date(a.completedOn))
             console.log(`✅ Found ${completedBy.length} users who completed this level`)
         } catch (error) {
             console.warn('Could not fetch users who completed this level:', error)
@@ -73,6 +80,7 @@ export default function LevelDataRoute() {
     const { placement, level, completedBy, totalLevels, error } = useLoaderData()
     const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
+    const { isAdmin } = useAdmin()
 
     const isFirstLevel = placement === 1
     const isLastLevel = placement === totalLevels
@@ -224,7 +232,17 @@ export default function LevelDataRoute() {
             {/* Completed By Table at Bottom - Protected */}
             {isAuthenticated && (
                 <div className={styles.completedBySection}>
-                    <h2 className={styles.sectionTitle}>Players Who Completed This Level</h2>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>Players Who Completed This Level</h2>
+                        {isAdmin && (
+                            <button
+                                onClick={() => navigate(`/admin/completions?levelId=${level.id}`)}
+                                className={styles.addCompletionBtn}
+                            >
+                                + Add Completion
+                            </button>
+                        )}
+                    </div>
 
                     {completedBy.length > 0 ? (
                         <div className={styles.tableWrapper}>
@@ -242,20 +260,22 @@ export default function LevelDataRoute() {
                                         <tr key={player.userId}>
                                             <td>{index + 1}</td>
                                             <td>
-                                                <div className={styles.playerCell}>
-                                                    {player.avatar ? (
-                                                        <img
-                                                            src={`https://cdn.discordapp.com/avatars/${player.userId}/${player.avatar}.png?size=64`}
-                                                            alt={player.username}
-                                                            className={styles.playerAvatar}
-                                                        />
-                                                    ) : (
-                                                        <div className={styles.playerAvatarPlaceholder}>
-                                                            {player.username.charAt(0).toUpperCase()}
-                                                        </div>
-                                                    )}
-                                                    <span className={styles.playerName}>{player.username}</span>
-                                                </div>
+                                                <Link to={`/profile/${player.userId}`} className={styles.playerLink}>
+                                                    <div className={styles.playerCell}>
+                                                        {player.avatar ? (
+                                                            <img
+                                                                src={`https://cdn.discordapp.com/avatars/${player.userId}/${player.avatar}.png?size=64`}
+                                                                alt={player.username}
+                                                                className={styles.playerAvatar}
+                                                            />
+                                                        ) : (
+                                                            <div className={styles.playerAvatarPlaceholder}>
+                                                                {player.username.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <span className={styles.playerName}>{player.username}</span>
+                                                    </div>
+                                                </Link>
                                             </td>
                                             <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
                                             <td>

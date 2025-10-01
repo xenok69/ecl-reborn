@@ -192,11 +192,43 @@
     margin-bottom: 2rem;
 }
 
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
 .sectionTitle {
     font-size: 1.5rem;
     font-weight: 700;
-    margin: 0 0 1.5rem 0;
+    margin: 0;
     color: var(--color-white);
+}
+
+.addCompletionBtn {
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-dark) 100%);
+    color: var(--color-white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px var(--color-blue-30);
+    white-space: nowrap;
+}
+
+.addCompletionBtn:hover {
+    background: linear-gradient(135deg, var(--color-blue-light) 0%, var(--color-blue) 100%);
+    box-shadow: 0 4px 16px var(--color-blue-30);
+    transform: translateY(-2px);
+}
+
+.addCompletionBtn:active {
+    transform: translateY(0);
 }
 
 .tableWrapper {
@@ -236,6 +268,17 @@
     padding: 0.75rem 1rem;
     color: var(--color-white);
     font-size: 0.9rem;
+}
+
+.playerLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: all 0.2s ease;
+}
+
+.playerLink:hover .playerName {
+    color: var(--color-blue);
 }
 
 .playerCell {
@@ -404,6 +447,15 @@
     .completedTable th,
     .completedTable td {
         padding: 0.6rem 0.75rem;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .addCompletionBtn {
+        width: 100%;
     }
 }
 

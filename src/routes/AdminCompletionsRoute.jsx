@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Form, useActionData, useNavigation } from 'react-router'
+import { Form, useActionData, useNavigation, useSearchParams } from 'react-router'
 import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
 import styles from './AdminSubmitRoute.module.css'
@@ -51,15 +51,23 @@ export default function AdminCompletionsRoute() {
     const actionData = useActionData()
     const navigation = useNavigation()
     const isSubmitting = navigation.state === 'submitting'
+    const [searchParams] = useSearchParams()
 
     const [levels, setLevels] = useState([])
     const [isLoadingLevels, setIsLoadingLevels] = useState(true)
+    const [selectedLevelId, setSelectedLevelId] = useState('')
 
     useEffect(() => {
         const loadLevels = async () => {
             try {
                 const allLevels = await getLevels()
                 setLevels(allLevels)
+
+                // Pre-select level from URL params if provided
+                const levelIdFromParams = searchParams.get('levelId')
+                if (levelIdFromParams) {
+                    setSelectedLevelId(levelIdFromParams)
+                }
             } catch (error) {
                 console.error('Failed to load levels:', error)
             } finally {
@@ -67,7 +75,7 @@ export default function AdminCompletionsRoute() {
             }
         }
         loadLevels()
-    }, [])
+    }, [searchParams])
 
     return (
         <div className={styles.AdminContainer}>
@@ -113,6 +121,8 @@ export default function AdminCompletionsRoute() {
                             <select
                                 name="levelId"
                                 className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''}`}
+                                value={selectedLevelId}
+                                onChange={(e) => setSelectedLevelId(e.target.value)}
                                 required
                             >
                                 <option value="">Select a level</option>
