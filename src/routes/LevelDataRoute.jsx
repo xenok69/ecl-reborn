@@ -34,12 +34,21 @@ export const levelDataLoader = async ({ params }) => {
         }
 
         // Fetch all user activities to find who completed this level
-        // Note: This requires a query to get all users who have this level in their completed_levels
-        // Since we don't have a direct method for this, we'll need to add one or work around it
-        const completedBy = []
+        let completedBy = []
+        try {
+            const users = await supabaseOperations.getUsersWhoCompletedLevel(level.id)
+            completedBy = users.map((user, index) => ({
+                userId: user.user_id,
+                username: user.username || 'Unknown User',
+                avatar: user.avatar,
+                completedOn: user.updated_at,
+                online: user.online
+            }))
+            console.log(`✅ Found ${completedBy.length} users who completed this level`)
+        } catch (error) {
+            console.warn('Could not fetch users who completed this level:', error)
+        }
 
-        // For now, we'll return the level data
-        // You may want to add a method to supabaseOperations to query users by completed level
         return {
             placement,
             level,

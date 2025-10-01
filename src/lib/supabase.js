@@ -498,6 +498,35 @@ export const supabaseOperations = {
     }
   },
 
+  async getUsersWhoCompletedLevel(levelId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch users')
+      return []
+    }
+
+    try {
+      console.log('🔍 Searching for users who completed level ID:', levelId)
+
+      // Query for users who have this level ID in their completed_levels array
+      // The @> operator checks if the array contains the element
+      const { data, error } = await supabase
+        .from('user_activity')
+        .select('*')
+        .contains('completed_levels', [String(levelId)])
+
+      if (error) {
+        console.error('Error fetching users who completed level:', error)
+        throw error
+      }
+
+      console.log('✅ Found users who completed this level:', data?.length || 0)
+      return data || []
+    } catch (error) {
+      console.error('Supabase get users who completed level error:', error)
+      throw error
+    }
+  },
+
   // Test function for debugging
   async testUserActivityTable() {
     if (!supabase) {

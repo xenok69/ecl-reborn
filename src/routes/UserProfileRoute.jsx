@@ -24,9 +24,18 @@ export const userProfileLoader = async ({ params }) => {
         // Fetch all levels to get details of completed levels
         const allLevels = await getLevels()
         const completedLevelIds = userActivity.completed_levels || []
-        const completedLevels = allLevels.filter(level =>
-            completedLevelIds.includes(level.id)
-        )
+
+        console.log('🔍 Debug - Completed Level IDs from DB:', completedLevelIds)
+        console.log('🔍 Debug - Sample level IDs:', allLevels.slice(0, 3).map(l => l.id))
+
+        // Match levels by their ID field
+        const completedLevels = allLevels.filter(level => {
+            // Convert both to strings for comparison since completed_levels might be stored as strings or numbers
+            const levelId = String(level.id)
+            return completedLevelIds.some(completedId => String(completedId) === levelId)
+        })
+
+        console.log('✅ Debug - Matched Completed Levels:', completedLevels.length, completedLevels.map(l => l.levelName))
 
         return {
             userId,
