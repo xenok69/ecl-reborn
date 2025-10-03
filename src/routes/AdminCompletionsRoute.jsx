@@ -158,7 +158,7 @@ export default function AdminCompletionsRoute() {
                                 value={userId}
                                 onChange={(e) => setUserId(e.target.value)}
                                 disabled={isEdit}
-                                required
+                                required={!isEdit}
                             />
                             {actionData?.errors?.userId && (
                                 <span className={styles.ErrorText}>{actionData.errors.userId}</span>
@@ -178,7 +178,7 @@ export default function AdminCompletionsRoute() {
                                 value={selectedLevelId}
                                 onChange={(e) => setSelectedLevelId(e.target.value)}
                                 disabled={isEdit}
-                                required
+                                required={!isEdit}
                             >
                                 <option value="">Select a level</option>
                                 {isLoadingLevels ? (
