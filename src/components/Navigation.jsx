@@ -47,7 +47,7 @@ export default function Navigation({ navItems, activeNav, onNavChange, className
   };
 
   return (
-    <nav className={`${styles.Navigation} ${className || ''}`}>
+    <nav className={`${styles.Navigation} ${className ?? ''}`} aria-label="Main navigation">
       {items.map((item) => (
         <button
           key={item.id}
@@ -55,10 +55,12 @@ export default function Navigation({ navItems, activeNav, onNavChange, className
             currentActiveNav === item.id ? styles.NavActive : ""
           }`}
           onClick={() => handleNavClick(item)}
+          aria-label={item.label}
+          aria-current={currentActiveNav === item.id ? "page" : undefined}
         >
-          <span className={styles.NavIcon}>{item.icon}</span>
+          <span className={styles.NavIcon} aria-hidden="true">{item.icon}</span>
           <span className={styles.NavLabel}>{item.label}</span>
-          <div className={styles.NavHighlight}></div>
+          <div className={styles.NavHighlight} aria-hidden="true"></div>
         </button>
       ))}
     </nav>
