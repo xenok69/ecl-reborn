@@ -336,6 +336,65 @@ export default function LevelDataRoute() {
                 )}
             </div>
 
+            {/* Verifiers Section - Only for Admins */}
+            {isAdmin && verifiers.length > 0 && (
+                <div className={styles.verifiersSection}>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>Verifiers</h2>
+                    </div>
+                    <div className={styles.verifiersList}>
+                        {verifiers.map((verifier) => (
+                            <div key={verifier.userId} className={styles.verifierCard}>
+                                <Link to={`/profile/${verifier.userId}`} className={styles.verifierLink}>
+                                    <div className={styles.verifierInfo}>
+                                        {verifier.avatar ? (
+                                            <img
+                                                src={`https://cdn.discordapp.com/avatars/${verifier.userId}/${verifier.avatar}.png?size=64`}
+                                                alt={verifier.username}
+                                                className={styles.verifierAvatar}
+                                            />
+                                        ) : (
+                                            <div className={styles.verifierAvatarPlaceholder}>
+                                                {verifier.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className={styles.verifierDetails}>
+                                            <span className={styles.verifierName}>{verifier.username}</span>
+                                            <span className={styles.verifierDate}>
+                                                {verifier.completedOn ? new Date(verifier.completedOn).toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <div className={styles.verifierActions}>
+                                    {verifier.youtubeLink && (
+                                        <a
+                                            href={verifier.youtubeLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.verifierVideoLink}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            🎥 Video
+                                        </a>
+                                    )}
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleEditCompletion(verifier)
+                                        }}
+                                        className={styles.verifierEditBtn}
+                                        title="Edit verifier"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Completed By Table at Bottom - Protected */}
             {isAuthenticated && (
                 <div className={styles.completedBySection}>

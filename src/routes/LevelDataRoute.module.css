@@ -350,6 +350,133 @@
     font-size: 0.85rem;
 }
 
+/* Verifiers Section */
+.verifiersSection {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-blue-30);
+    box-shadow: 0 4px 16px var(--color-blue-20);
+    margin-bottom: 1.5rem;
+}
+
+.verifiersList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.verifierCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-black-30);
+    border: 1px solid var(--color-white-20);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.verifierCard:hover {
+    background: var(--color-black-20);
+    border-color: var(--color-blue);
+    transform: translateY(-1px);
+}
+
+.verifierLink {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    flex: 1;
+}
+
+.verifierInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.verifierAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.verifierAvatarPlaceholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-purple) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.verifierDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.verifierName {
+    font-weight: 600;
+    color: var(--color-white);
+    font-size: 1rem;
+}
+
+.verifierDate {
+    font-size: 0.85rem;
+    color: var(--color-gray);
+}
+
+.verifierActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.verifierVideoLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-blue);
+    color: var(--color-white);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.verifierVideoLink:hover {
+    background: var(--color-blue-dark);
+    transform: translateY(-1px);
+}
+
+.verifierEditBtn {
+    padding: 0.5rem 1rem;
+    background: var(--color-white-20);
+    border: 1px solid var(--color-white-30);
+    border-radius: 6px;
+    color: var(--color-white);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.verifierEditBtn:hover {
+    background: var(--color-white-30);
+    border-color: var(--color-white-50);
+    transform: translateY(-1px);
+}
+
 .noPlayers {
     text-align: center;
     padding: 2rem;
