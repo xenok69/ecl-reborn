@@ -12,6 +12,7 @@ export const adminCompletionsAction = async ({ request }) => {
     const levelId = formData.get('levelId')?.trim()
     const youtubeLink = formData.get('youtubeLink')?.trim()
     const completedAt = formData.get('completedAt')?.trim()
+    const isEdit = formData.get('isEdit') === 'true'
 
     // Validation
     if (!userId) errors.userId = 'User ID is required'
@@ -22,27 +23,43 @@ export const adminCompletionsAction = async ({ request }) => {
     }
 
     try {
-        // Add the completed level
-        const result = await supabaseOperations.addCompletedLevel(
-            userId,
-            levelId,
-            youtubeLink || null,
-            completedAt || null
-        )
-
-        if (!result) {
-            throw new Error('Failed to add completed level')
-        }
-
-        return {
-            success: true,
-            message: `✅ Completed level added successfully for user ${userId}!`
+        let result
+        if (isEdit) {
+            // Update the completed level
+            result = await supabaseOperations.updateCompletedLevel(
+                userId,
+                levelId,
+                youtubeLink || null,
+                completedAt || null
+            )
+            if (!result) {
+                throw new Error('Failed to update completed level')
+            }
+            return {
+                success: true,
+                message: `✅ Completed level updated successfully for user ${userId}!`
+            }
+        } else {
+            // Add the completed level
+            result = await supabaseOperations.addCompletedLevel(
+                userId,
+                levelId,
+                youtubeLink || null,
+                completedAt || null
+            )
+            if (!result) {
+                throw new Error('Failed to add completed level')
+            }
+            return {
+                success: true,
+                message: `✅ Completed level added successfully for user ${userId}!`
+            }
         }
     } catch (error) {
-        console.error('Error adding completed level:', error)
+        console.error('Error processing completed level:', error)
         return {
             success: false,
-            message: error.message || 'Failed to add completed level. Please try again.'
+            message: error.message || 'Failed to process completed level. Please try again.'
         }
     }
 }
@@ -56,6 +73,12 @@ export default function AdminCompletionsRoute() {
     const [levels, setLevels] = useState([])
     const [isLoadingLevels, setIsLoadingLevels] = useState(true)
     const [selectedLevelId, setSelectedLevelId] = useState('')
+    const [userId, setUserId] = useState('')
+    const [youtubeLink, setYoutubeLink] = useState('')
+    const [completedAt, setCompletedAt] = useState('')
+
+    // Check if we're in edit mode
+    const isEdit = searchParams.get('edit') === 'true'
 
     useEffect(() => {
         const loadLevels = async () => {
@@ -63,10 +86,28 @@ export default function AdminCompletionsRoute() {
                 const allLevels = await getLevels()
                 setLevels(allLevels)
 
-                // Pre-select level from URL params if provided
+                // Pre-fill data from URL params if provided (for edit mode)
                 const levelIdFromParams = searchParams.get('levelId')
+                const userIdFromParams = searchParams.get('userId')
+                const youtubeFromParams = searchParams.get('youtubeLink')
+                const completedAtFromParams = searchParams.get('completedAt')
+
                 if (levelIdFromParams) {
                     setSelectedLevelId(levelIdFromParams)
+                }
+                if (userIdFromParams) {
+                    setUserId(userIdFromParams)
+                }
+                if (youtubeFromParams) {
+                    setYoutubeLink(youtubeFromParams)
+                }
+                if (completedAtFromParams) {
+                    // Convert ISO string to datetime-local format
+                    const date = new Date(completedAtFromParams)
+                    const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                        .toISOString()
+                        .slice(0, 16)
+                    setCompletedAt(localDateTime)
                 }
             } catch (error) {
                 console.error('Failed to load levels:', error)
@@ -80,9 +121,9 @@ export default function AdminCompletionsRoute() {
     return (
         <div className={styles.AdminContainer}>
             <div className={styles.Header}>
-                <h1 className={styles.Title}>Add Completed Level</h1>
+                <h1 className={styles.Title}>{isEdit ? 'Edit Completion' : 'Add Completed Level'}</h1>
                 <p className={styles.Subtitle}>
-                    Add a completed level record to a user's profile
+                    {isEdit ? 'Update a completion record' : 'Add a completed level record to a user\'s profile'}
                 </p>
             </div>
 
@@ -93,6 +134,8 @@ export default function AdminCompletionsRoute() {
             )}
 
             <Form method="post" className={styles.SubmitForm}>
+                <input type="hidden" name="isEdit" value={isEdit} />
+
                 <fieldset className={styles.FormSection}>
                     <legend className={styles.SectionTitle}>User & Level Information</legend>
 
@@ -104,13 +147,16 @@ export default function AdminCompletionsRoute() {
                                 name="userId"
                                 className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''}`}
                                 placeholder="Enter Discord user ID"
+                                value={userId}
+                                onChange={(e) => setUserId(e.target.value)}
+                                disabled={isEdit}
                                 required
                             />
                             {actionData?.errors?.userId && (
                                 <span className={styles.ErrorText}>{actionData.errors.userId}</span>
                             )}
                             <div className={styles.FileInputHint}>
-                                💡 Find the user ID from the leaderboard or profile page
+                                💡 {isEdit ? 'User ID cannot be changed' : 'Find the user ID from the leaderboard or profile page'}
                             </div>
                         </label>
                     </div>
@@ -123,6 +169,7 @@ export default function AdminCompletionsRoute() {
                                 className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''}`}
                                 value={selectedLevelId}
                                 onChange={(e) => setSelectedLevelId(e.target.value)}
+                                disabled={isEdit}
                                 required
                             >
                                 <option value="">Select a level</option>
@@ -139,6 +186,11 @@ export default function AdminCompletionsRoute() {
                             {actionData?.errors?.levelId && (
                                 <span className={styles.ErrorText}>{actionData.errors.levelId}</span>
                             )}
+                            {isEdit && (
+                                <div className={styles.FileInputHint}>
+                                    💡 Level ID cannot be changed
+                                </div>
+                            )}
                         </label>
                     </div>
 
@@ -150,6 +202,8 @@ export default function AdminCompletionsRoute() {
                                 name="youtubeLink"
                                 className={styles.Input}
                                 placeholder="https://youtube.com/watch?v=..."
+                                value={youtubeLink}
+                                onChange={(e) => setYoutubeLink(e.target.value)}
                             />
                             <div className={styles.FileInputHint}>
                                 💡 Full YouTube URL (e.g., https://youtube.com/watch?v=dQw4w9WgXcQ)
@@ -164,6 +218,8 @@ export default function AdminCompletionsRoute() {
                                 type="datetime-local"
                                 name="completedAt"
                                 className={styles.Input}
+                                value={completedAt}
+                                onChange={(e) => setCompletedAt(e.target.value)}
                             />
                             <div className={styles.FileInputHint}>
                                 💡 Leave empty to use current date/time
@@ -184,7 +240,9 @@ export default function AdminCompletionsRoute() {
                         disabled={isSubmitting}
                         className={`${styles.SubmitBtn} ${styles.AddBtn}`}
                     >
-                        {isSubmitting ? 'Adding Completion...' : 'Add Completion'}
+                        {isSubmitting
+                            ? (isEdit ? 'Updating Completion...' : 'Adding Completion...')
+                            : (isEdit ? 'Update Completion' : 'Add Completion')}
                     </button>
                 </div>
             </Form>

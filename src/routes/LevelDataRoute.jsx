@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLoaderData, useNavigate, Link } from 'react-router'
 import { getLevels } from '../lib/levelUtils'
 import { supabaseOperations } from '../lib/supabase'
@@ -80,6 +81,7 @@ export const levelDataLoader = async ({ params, request }) => {
                     username: user.username || 'Unknown User',
                     avatar: user.avatar,
                     completedOn: completionEntry?.completedAt || user.updated_at,
+                    youtubeLink: completionEntry?.yt || '',
                     online: user.online
                 }
             })
@@ -120,6 +122,9 @@ export default function LevelDataRoute() {
     const { isAuthenticated } = useAuth()
     const { isAdmin } = useAdmin()
 
+    const [deleteConfirm, setDeleteConfirm] = useState(null)
+    const [deleteTimer, setDeleteTimer] = useState(0)
+
     const isFirstLevel = placement === 1
     const isLastLevel = placement === totalLevels
 
@@ -127,6 +132,64 @@ export default function LevelDataRoute() {
     const goToPrevious = () => navigate(`/level/${placement - 1}`)
     const goToNext = () => navigate(`/level/${placement + 1}`)
     const goToLast = () => navigate(`/level/${totalLevels}`)
+
+    const handleEditCompletion = (player) => {
+        // Navigate to admin completions with pre-filled data
+        const params = new URLSearchParams({
+            edit: 'true',
+            userId: player.userId,
+            levelId: level.id,
+            youtubeLink: player.youtubeLink || '',
+            completedAt: player.completedOn || ''
+        })
+        navigate(`/admin/completions?${params.toString()}`)
+    }
+
+    const handleDeleteCompletion = (player) => {
+        setDeleteConfirm({
+            userId: player.userId,
+            username: player.username,
+            levelId: level.id,
+            levelName: level.levelName
+        })
+        setDeleteTimer(3)
+
+        const countdown = setInterval(() => {
+            setDeleteTimer(prev => {
+                if (prev <= 1) {
+                    clearInterval(countdown)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+    }
+
+    const confirmDeleteCompletion = async () => {
+        try {
+            const result = await supabaseOperations.removeCompletedLevel(
+                deleteConfirm.userId,
+                deleteConfirm.levelId
+            )
+            console.log('Completion deleted successfully:', result)
+
+            alert(`Completion for "${deleteConfirm.username}" on "${deleteConfirm.levelName}" has been deleted!`)
+
+            // Refresh the page to show updated data
+            window.location.reload()
+        } catch (error) {
+            console.error('Error deleting completion:', error)
+            alert(`Failed to delete completion: ${error.message}`)
+        } finally {
+            setDeleteConfirm(null)
+            setDeleteTimer(0)
+        }
+    }
+
+    const cancelDeleteCompletion = () => {
+        setDeleteConfirm(null)
+        setDeleteTimer(0)
+    }
 
     if (error) {
         return (
@@ -291,6 +354,7 @@ export default function LevelDataRoute() {
                                         <th>Player</th>
                                         <th>Completed On</th>
                                         <th>Status</th>
+                                        {isAdmin && <th>Actions</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -321,6 +385,32 @@ export default function LevelDataRoute() {
                                                     {player.online ? '🟢 Online' : '🔴 Offline'}
                                                 </span>
                                             </td>
+                                            {isAdmin && (
+                                                <td>
+                                                    <div className={styles.actionButtons}>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault()
+                                                                handleEditCompletion(player)
+                                                            }}
+                                                            className={styles.editBtn}
+                                                            title="Edit completion"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault()
+                                                                handleDeleteCompletion(player)
+                                                            }}
+                                                            className={styles.deleteBtn}
+                                                            title="Delete completion"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -339,6 +429,35 @@ export default function LevelDataRoute() {
                     Back to Challenges
                 </button>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className={styles.DeleteModal}>
+                    <div className={styles.DeleteModalContent}>
+                        <h3>Delete Completion</h3>
+                        <p>
+                            Are you sure you want to delete <strong>"{deleteConfirm.username}"</strong>'s completion
+                            of <strong>"{deleteConfirm.levelName}"</strong>?
+                        </p>
+                        <p>This action cannot be undone.</p>
+                        <div className={styles.DeleteModalActions}>
+                            <button
+                                onClick={cancelDeleteCompletion}
+                                className={styles.CancelBtn}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteCompletion}
+                                disabled={deleteTimer > 0}
+                                className={styles.ConfirmDeleteBtn}
+                            >
+                                {deleteTimer > 0 ? `Wait ${deleteTimer}s` : 'Confirm Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
