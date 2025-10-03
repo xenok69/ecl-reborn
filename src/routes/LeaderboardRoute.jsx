@@ -3,21 +3,37 @@ import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
 import styles from './LeaderboardRoute.module.css'
 
-export const leaderboardLoader = async () => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-
+export const leaderboardLoader = async ({ request }) => {
   try {
-    // Fetch all users
-    const { data: allUsers, error } = await supabaseOperations.supabase
-      .from('user_activity')
-      .select('*')
+    // Check if request was aborted before starting
+    if (request.signal.aborted) {
+      return {
+        leaderboard: [],
+        error: null
+      }
+    }
+
+    // Fetch users and levels in parallel to avoid race conditions
+    const [usersResult, allLevels] = await Promise.all([
+      supabaseOperations.supabase
+        .from('user_activity')
+        .select('*'),
+      getLevels()
+    ])
+
+    // Check if request was aborted after data fetch
+    if (request.signal.aborted) {
+      return {
+        leaderboard: [],
+        error: null
+      }
+    }
+
+    const { data: allUsers, error } = usersResult
 
     if (error) {
       throw error
     }
-
-    // Fetch all levels to calculate points
-    const allLevels = await getLevels()
 
     // Calculate points for each user
     const leaderboard = allUsers.map(user => {
@@ -45,10 +61,13 @@ export const leaderboardLoader = async () => {
       error: null
     }
   } catch (error) {
-    console.error('Failed to load leaderboard:', error)
+    // Don't log errors if the request was aborted
+    if (!request.signal.aborted) {
+      console.error('Failed to load leaderboard:', error)
+    }
     return {
       leaderboard: [],
-      error: error.message
+      error: request.signal.aborted ? null : error.message
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useLoaderData, useNavigation, useNavigate, Link } from 'react-router'
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
@@ -6,23 +6,42 @@ import { useAdmin } from '../hooks/useAdmin'
 import { deleteLevelFromJson } from './AdminSubmitRoute'
 import styles from './ChallengesRoute.module.css'
 
-export const challengesLoader = async ({ params }) => {
-    // Simulate the loading delay you had
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+export const challengesLoader = async ({ params, request }) => {
     try {
+        // Check if request was aborted before starting
+        if (request.signal.aborted) {
+            return {
+                levels: [],
+                placement: params.placement,
+                error: null
+            }
+        }
+
         const allLevels = await getLevels()
-        return { 
+
+        // Check if request was aborted after data fetch
+        if (request.signal.aborted) {
+            return {
+                levels: [],
+                placement: params.placement,
+                error: null
+            }
+        }
+
+        return {
             levels: allLevels,
             placement: params.placement,
             error: null
         }
     } catch (error) {
-        console.error('Failed to load levels:', error)
-        return { 
+        // Don't log errors if the request was aborted
+        if (!request.signal.aborted) {
+            console.error('Failed to load levels:', error)
+        }
+        return {
             levels: [],
             placement: params.placement,
-            error: error.message
+            error: request.signal.aborted ? null : error.message
         }
     }
 }
@@ -36,15 +55,29 @@ export default function ChallengesRoute() {
     const [currentPage, setCurrentPage] = useState(() => {
         // If placement is provided in URL, calculate initial page
         if (urlPlacement) {
-            return Math.ceil(parseInt(urlPlacement) / 10)
+            const placementNum = parseInt(urlPlacement, 10)
+            if (!isNaN(placementNum) && placementNum > 0) {
+                return Math.ceil(placementNum / 10)
+            }
         }
         return 1
     })
     const [levelsPerPage] = useState(10)
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const [deleteTimer, setDeleteTimer] = useState(0)
-    
+
     const isLoading = navigation.state === 'loading'
+
+    // Sync currentPage when urlPlacement changes (e.g., from navigation)
+    useEffect(() => {
+        if (urlPlacement) {
+            const placementNum = parseInt(urlPlacement, 10)
+            if (!isNaN(placementNum) && placementNum > 0) {
+                const newPage = Math.ceil(placementNum / 10)
+                setCurrentPage(newPage)
+            }
+        }
+    }, [urlPlacement])
 
     // Calculate pagination
     const indexOfLastLevel = currentPage * levelsPerPage
