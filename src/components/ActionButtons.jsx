@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import { useState } from 'react'
 import ConfirmationDialog from './ConfirmationDialog'
 
-export default function ActionButtons({ onProfileClick, profileInitial = 'U', navigate: navigateProp }) {
+export default function ActionButtons({ onProfileClick, profileInitial = 'U', navigate: navigateProp, onSearchToggle }) {
     const { user, signOut, isAuthenticated } = useAuth();
     const navigate = navigateProp || useNavigate();
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -17,9 +17,11 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
             // Close the search
             setIsSearchExpanded(false);
             setSearchQuery('');
+            onSearchToggle?.(false);
         } else {
             // Open the search
             setIsSearchExpanded(true);
+            onSearchToggle?.(true);
         }
     };
 
@@ -29,6 +31,7 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
             navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
             setIsSearchExpanded(false);
             setSearchQuery('');
+            onSearchToggle?.(false);
         }
     };
 
@@ -102,7 +105,7 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
                 </button>
             </form>
             {isAuthenticated ? (
-                <div className={styles.ProfileContainer}>
+                <div className={`${styles.ProfileContainer} ${isSearchExpanded ? styles.Hidden : ''}`}>
                     <button className={styles.ProfileBtn} onClick={handleProfileClick}>
                         <div className={styles.ProfileAvatar}>
                             {getAvatarUrl() ? (
@@ -122,7 +125,7 @@ export default function ActionButtons({ onProfileClick, profileInitial = 'U', na
                     </button>
                 </div>
             ) : (
-                <button className={styles.SignInBtn} onClick={() => navigate('/signin')}>
+                <button className={`${styles.SignInBtn} ${isSearchExpanded ? styles.Hidden : ''}`} onClick={() => navigate('/signin')}>
                     Sign In
                 </button>
             )}

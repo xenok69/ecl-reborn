@@ -12,6 +12,7 @@ export const adminCompletionsAction = async ({ request }) => {
     const levelId = formData.get('levelId')?.trim()
     const youtubeLink = formData.get('youtubeLink')?.trim()
     const completedAt = formData.get('completedAt')?.trim()
+    const isVerifier = formData.get('isVerifier') === 'true'
     const isEdit = formData.get('isEdit') === 'true'
 
     // Validation
@@ -30,7 +31,8 @@ export const adminCompletionsAction = async ({ request }) => {
                 userId,
                 levelId,
                 youtubeLink || null,
-                completedAt || null
+                completedAt || null,
+                isVerifier
             )
             if (!result) {
                 throw new Error('Failed to update completed level')
@@ -45,7 +47,8 @@ export const adminCompletionsAction = async ({ request }) => {
                 userId,
                 levelId,
                 youtubeLink || null,
-                completedAt || null
+                completedAt || null,
+                isVerifier
             )
             if (!result) {
                 throw new Error('Failed to add completed level')
@@ -76,6 +79,7 @@ export default function AdminCompletionsRoute() {
     const [userId, setUserId] = useState('')
     const [youtubeLink, setYoutubeLink] = useState('')
     const [completedAt, setCompletedAt] = useState('')
+    const [isVerifier, setIsVerifier] = useState(false)
 
     // Check if we're in edit mode
     const isEdit = searchParams.get('edit') === 'true'
@@ -91,6 +95,7 @@ export default function AdminCompletionsRoute() {
                 const userIdFromParams = searchParams.get('userId')
                 const youtubeFromParams = searchParams.get('youtubeLink')
                 const completedAtFromParams = searchParams.get('completedAt')
+                const isVerifierFromParams = searchParams.get('isVerifier') === 'true'
 
                 if (levelIdFromParams) {
                     setSelectedLevelId(levelIdFromParams)
@@ -108,6 +113,9 @@ export default function AdminCompletionsRoute() {
                         .toISOString()
                         .slice(0, 16)
                     setCompletedAt(localDateTime)
+                }
+                if (isVerifierFromParams) {
+                    setIsVerifier(true)
                 }
             } catch (error) {
                 console.error('Failed to load levels:', error)
@@ -141,11 +149,11 @@ export default function AdminCompletionsRoute() {
 
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            User ID (Discord ID) *
+                            User ID (Discord ID) * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <input
                                 type="text"
                                 name="userId"
-                                className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''}`}
+                                className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 placeholder="Enter Discord user ID"
                                 value={userId}
                                 onChange={(e) => setUserId(e.target.value)}
@@ -163,10 +171,10 @@ export default function AdminCompletionsRoute() {
 
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            Level ID *
+                            Level ID * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <select
                                 name="levelId"
-                                className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''}`}
+                                className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 value={selectedLevelId}
                                 onChange={(e) => setSelectedLevelId(e.target.value)}
                                 disabled={isEdit}
@@ -225,6 +233,23 @@ export default function AdminCompletionsRoute() {
                                 💡 Leave empty to use current date/time
                             </div>
                         </label>
+                    </div>
+
+                    <div className={styles.FormGroup}>
+                        <label className={styles.CheckboxLabel}>
+                            <input
+                                type="checkbox"
+                                name="isVerifier"
+                                className={styles.Checkbox}
+                                checked={isVerifier}
+                                onChange={(e) => setIsVerifier(e.target.checked)}
+                                value="true"
+                            />
+                            <span className={styles.CheckboxText}>This user is a verifier for this level</span>
+                        </label>
+                        <div className={styles.FileInputHint}>
+                            💡 Verifiers are shown at the top of the level page and excluded from the leaderboard
+                        </div>
                     </div>
                 </fieldset>
 

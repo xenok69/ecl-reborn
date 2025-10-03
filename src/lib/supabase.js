@@ -424,7 +424,7 @@ export const supabaseOperations = {
     }
   },
 
-  async addCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null) {
+  async addCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null, isVerifier = false) {
     if (!supabase) {
       console.warn('Supabase not configured, skipping completed level update')
       return null
@@ -452,7 +452,8 @@ export const supabaseOperations = {
         const newEntry = {
           lvl: levelId,
           yt: youtubeLink,
-          completedAt: completedAt || new Date().toISOString()
+          completedAt: completedAt || new Date().toISOString(),
+          verifier: isVerifier
         }
         const updatedLevels = [...currentLevels, newEntry]
 
@@ -531,7 +532,7 @@ export const supabaseOperations = {
     }
   },
 
-  async updateCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null) {
+  async updateCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null, isVerifier = false) {
     if (!supabase) {
       console.warn('Supabase not configured, skipping completed level update')
       return null
@@ -558,7 +559,8 @@ export const supabaseOperations = {
           return {
             lvl: levelId,
             yt: youtubeLink,
-            completedAt: completedAt || entry.completedAt || new Date().toISOString()
+            completedAt: completedAt || entry.completedAt || new Date().toISOString(),
+            verifier: isVerifier
           }
         }
         return entry

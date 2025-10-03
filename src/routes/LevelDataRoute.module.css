@@ -325,6 +325,31 @@
     font-size: 0.85rem;
 }
 
+.videoLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--color-blue);
+    color: var(--color-white);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.videoLink:hover {
+    background: var(--color-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-blue-30);
+}
+
+.noVideo {
+    color: var(--color-gray);
+    font-size: 0.85rem;
+}
+
 .noPlayers {
     text-align: center;
     padding: 2rem;

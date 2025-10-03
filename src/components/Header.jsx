@@ -14,6 +14,7 @@ export default function Header() {
   const { user } = useAuth();
   // Show loading if either router navigation is happening OR context loading is true
   const isLoading = navigation.state === 'loading' || contextLoading;
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   const navItems = [
     { id: "home", label: "Home", icon: "🏠", path: "/" },
@@ -46,15 +47,16 @@ export default function Header() {
     <header className={styles.MainHeader}>
       <div className={styles.HeaderGlow}></div>
 
-      <div className={styles.HeaderContent}>
-        <Logo onClick={handleLogoClick} />
+      <div className={`${styles.HeaderContent} ${isSearchActive ? styles.SearchActive : ''}`}>
+        <Logo onClick={handleLogoClick} className={isSearchActive ? styles.Hidden : ''} />
 
-        <Navigation navItems={navItems} />
+        <Navigation navItems={navItems} className={isSearchActive ? styles.Hidden : ''} />
 
         <ActionButtons
           onProfileClick={handleProfileClick}
           profileInitial="U"
           navigate={navigate}
+          onSearchToggle={setIsSearchActive}
         />
       </div>
 

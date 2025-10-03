@@ -79,12 +79,27 @@
     100% { background-position: 200% 0; }
 }
 
+/* Hide elements when search is active on mobile */
+.HeaderContent .Hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-20px);
+    transition: all 0.3s ease;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) and (min-width: 769px) {
     /* iPad/Tablet specific */
     .HeaderContent {
         padding: 0 1.5rem;
         gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide logo and nav when search is active */
+    .HeaderContent.SearchActive > :not(.Hidden) {
+        transition: all 0.3s ease;
     }
 }
 
@@ -109,7 +124,7 @@
     .MainHeader {
         height: 60px;
     }
-    
+
     .HeaderContent {
         padding: 0 0.5rem;
         gap: 0.25rem;

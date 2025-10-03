@@ -2,7 +2,7 @@ import styles from "./Navigation.module.css";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 
-export default function Navigation({ navItems, activeNav, onNavChange }) {
+export default function Navigation({ navItems, activeNav, onNavChange, className }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,7 +47,7 @@ export default function Navigation({ navItems, activeNav, onNavChange }) {
   };
 
   return (
-    <nav className={styles.Navigation}>
+    <nav className={`${styles.Navigation} ${className || ''}`}>
       {items.map((item) => (
         <button
           key={item.id}

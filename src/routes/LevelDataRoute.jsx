@@ -82,6 +82,7 @@ export const levelDataLoader = async ({ params, request }) => {
                     avatar: user.avatar,
                     completedOn: completionEntry?.completedAt || user.updated_at,
                     youtubeLink: completionEntry?.yt || '',
+                    isVerifier: completionEntry?.verifier || false,
                     online: user.online
                 }
             })
@@ -125,6 +126,10 @@ export default function LevelDataRoute() {
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const [deleteTimer, setDeleteTimer] = useState(0)
 
+    // Separate verifiers from regular players
+    const verifiers = completedBy.filter(player => player.isVerifier)
+    const regularPlayers = completedBy.filter(player => !player.isVerifier)
+
     const isFirstLevel = placement === 1
     const isLastLevel = placement === totalLevels
 
@@ -140,7 +145,8 @@ export default function LevelDataRoute() {
             userId: player.userId,
             levelId: level.id,
             youtubeLink: player.youtubeLink || '',
-            completedAt: player.completedOn || ''
+            completedAt: player.completedOn || '',
+            isVerifier: player.isVerifier ? 'true' : 'false'
         })
         navigate(`/admin/completions?${params.toString()}`)
     }
@@ -345,7 +351,7 @@ export default function LevelDataRoute() {
                         )}
                     </div>
 
-                    {completedBy.length > 0 ? (
+                    {regularPlayers.length > 0 ? (
                         <div className={styles.tableWrapper}>
                             <table className={styles.completedTable}>
                                 <thead>
@@ -353,12 +359,13 @@ export default function LevelDataRoute() {
                                         <th>#</th>
                                         <th>Player</th>
                                         <th>Completed On</th>
+                                        <th>Video</th>
                                         <th>Status</th>
                                         {isAdmin && <th>Actions</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {completedBy.map((player, index) => (
+                                    {regularPlayers.map((player, index) => (
                                         <tr key={player.userId}>
                                             <td>{index + 1}</td>
                                             <td>
@@ -380,6 +387,21 @@ export default function LevelDataRoute() {
                                                 </Link>
                                             </td>
                                             <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
+                                            <td>
+                                                {player.youtubeLink ? (
+                                                    <a
+                                                        href={player.youtubeLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.videoLink}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        🎥 Watch
+                                                    </a>
+                                                ) : (
+                                                    <span className={styles.noVideo}>-</span>
+                                                )}
+                                            </td>
                                             <td>
                                                 <span className={player.online ? styles.statusOnline : styles.statusOffline}>
                                                     {player.online ? '🟢 Online' : '🔴 Offline'}
