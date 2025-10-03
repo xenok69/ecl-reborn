@@ -143,6 +143,13 @@ export default function AdminCompletionsRoute() {
 
             <Form method="post" className={styles.SubmitForm}>
                 <input type="hidden" name="isEdit" value={isEdit} />
+                {/* Hidden inputs for locked fields in edit mode */}
+                {isEdit && (
+                    <>
+                        <input type="hidden" name="userId" value={userId} />
+                        <input type="hidden" name="levelId" value={selectedLevelId} />
+                    </>
+                )}
 
                 <fieldset className={styles.FormSection}>
                     <legend className={styles.SectionTitle}>User & Level Information</legend>
@@ -152,7 +159,7 @@ export default function AdminCompletionsRoute() {
                             User ID (Discord ID) * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <input
                                 type="text"
-                                name="userId"
+                                name={isEdit ? undefined : "userId"}
                                 className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 placeholder="Enter Discord user ID"
                                 value={userId}
@@ -173,7 +180,7 @@ export default function AdminCompletionsRoute() {
                         <label className={styles.Label}>
                             Level ID * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <select
-                                name="levelId"
+                                name={isEdit ? undefined : "levelId"}
                                 className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 value={selectedLevelId}
                                 onChange={(e) => setSelectedLevelId(e.target.value)}
