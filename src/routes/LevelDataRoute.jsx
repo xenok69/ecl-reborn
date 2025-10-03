@@ -5,11 +5,20 @@ import { useAuth } from '../hooks/useAuth'
 import { useAdmin } from '../hooks/useAdmin'
 import styles from './LevelDataRoute.module.css'
 
-export const levelDataLoader = async ({ params }) => {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
+export const levelDataLoader = async ({ params, request }) => {
     try {
-        const placement = parseInt(params.placement)
+        // Check if request was aborted before starting
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                placement: params.placement,
+                level: null,
+                completedBy: [],
+                totalLevels: 0
+            }
+        }
+
+        const placement = parseInt(params.placement, 10)
 
         if (isNaN(placement) || placement < 1) {
             return {
@@ -23,6 +32,18 @@ export const levelDataLoader = async ({ params }) => {
 
         // Fetch all levels
         const allLevels = await getLevels()
+
+        // Check if request was aborted after fetching levels
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                placement: params.placement,
+                level: null,
+                completedBy: [],
+                totalLevels: 0
+            }
+        }
+
         const level = allLevels.find(l => l.placement === placement)
 
         if (!level) {
@@ -35,10 +56,22 @@ export const levelDataLoader = async ({ params }) => {
             }
         }
 
-        // Fetch all user activities to find who completed this level
+        // Fetch users who completed this level
         let completedBy = []
         try {
             const users = await supabaseOperations.getUsersWhoCompletedLevel(level.id)
+
+            // Check if request was aborted after fetching users
+            if (request.signal.aborted) {
+                return {
+                    error: null,
+                    placement: params.placement,
+                    level: null,
+                    completedBy: [],
+                    totalLevels: 0
+                }
+            }
+
             completedBy = users.map((user, index) => {
                 // Find the completion entry for this specific level
                 const completionEntry = user.completed_levels?.find(entry => String(entry.lvl) === String(level.id))
@@ -54,7 +87,9 @@ export const levelDataLoader = async ({ params }) => {
             completedBy.sort((a, b) => new Date(b.completedOn) - new Date(a.completedOn))
             console.log(`✅ Found ${completedBy.length} users who completed this level`)
         } catch (error) {
-            console.warn('Could not fetch users who completed this level:', error)
+            if (!request.signal.aborted) {
+                console.warn('Could not fetch users who completed this level:', error)
+            }
         }
 
         return {
@@ -65,9 +100,12 @@ export const levelDataLoader = async ({ params }) => {
             error: null
         }
     } catch (error) {
-        console.error('Failed to load level data:', error)
+        // Don't log errors if the request was aborted
+        if (!request.signal.aborted) {
+            console.error('Failed to load level data:', error)
+        }
         return {
-            error: error.message,
+            error: request.signal.aborted ? null : error.message,
             placement: params.placement,
             level: null,
             completedBy: [],
