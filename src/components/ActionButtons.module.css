@@ -1,4 +1,15 @@
-/* Action Buttons */
+:global(.sr-only) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .Actions {
     display: flex;
     align-items: center;
@@ -17,50 +28,43 @@
     gap: 0.5rem;
 }
 
-/* Expanding Search Container */
 .SearchContainer {
     position: relative;
     display: flex;
     align-items: center;
-    width: 40px;
+    gap: 0.5rem;
+    width: 200px;
     height: 40px;
     background: var(--color-black-10);
     border: 1px solid var(--color-white-20);
     border-radius: 12px;
-    overflow: hidden;
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0 0.75rem;
+    transition: all 0.3s ease;
 }
 
-.SearchContainer.Expanded {
-    width: 300px;
-    background: var(--color-white-20);
-    border-color: var(--color-white-50);
-    box-shadow: 0 0 15px var(--color-white-30);
+.SearchContainer.Focused {
+    width: 280px;
+    background: var(--color-black-30);
+    border-color: var(--color-white-40);
+    box-shadow: 0 0 20px var(--color-white-20);
+}
+
+.SearchIcon {
+    flex-shrink: 0;
+    color: var(--color-gray);
+    transition: color 0.3s ease;
+}
+
+.SearchContainer.Focused .SearchIcon {
+    color: var(--color-white);
 }
 
 .SearchInput {
-    position: absolute;
-    left: 12px;
-    right: 52px;
+    flex: 1;
     background: transparent;
     border: none;
     color: var(--color-white);
-    font-size: 0.95rem;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-}
-
-.SearchContainer.Expanded .SearchInput {
-    opacity: 1;
-    pointer-events: auto;
-    transition-delay: 0.15s;
-}
-
-.SearchInput:focus {
+    font-size: 0.9rem;
     outline: none;
 }
 
@@ -68,10 +72,33 @@
     color: var(--color-gray);
 }
 
-.SearchBtn {
-    position: absolute;
-    right: 0;
+.ClearBtn {
+    flex-shrink: 0;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: var(--color-gray);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.ClearBtn:hover {
+    color: var(--color-white);
+    background: var(--color-white-10);
+}
+
+.ClearBtn:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
+.SearchToggle {
+    display: none;
     align-items: center;
     justify-content: center;
     width: 40px;
@@ -80,16 +107,18 @@
     border: none;
     color: var(--color-gray);
     cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    border-radius: 10px;
 }
 
-.SearchBtn:hover {
+.SearchToggle:hover {
     color: var(--color-white);
-    transform: scale(1.1);
+    background: var(--color-white-10);
 }
 
-.SearchContainer.Expanded .SearchBtn {
-    color: var(--color-white);
+.SearchToggle:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
 }
 
 .ProfileBtn {
@@ -107,6 +136,12 @@
 
 .ProfileBtn:hover {
     transform: scale(1.1);
+}
+
+.ProfileBtn:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+    border-radius: 12px;
 }
 
 .ProfileAvatar {
@@ -173,6 +208,11 @@
     transform: scale(1.1);
 }
 
+.SignOutBtn:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
 .SignInBtn {
     padding: 0.5rem 1rem;
     background: var(--color-blue);
@@ -191,91 +231,227 @@
     box-shadow: 0 4px 12px var(--color-blue-30);
 }
 
+.SignInBtn:focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+}
+
 @keyframes onlinePulse {
     0%, 100% { box-shadow: 0 0 0 0 var(--color-white-30); }
     50% { box-shadow: 0 0 0 8px transparent; }
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) and (min-width: 769px) {
-    /* iPad/Tablet - keep all elements, good spacing */
     .Actions {
         gap: 0.9rem;
         padding: 0.45rem;
     }
+
+    .SearchContainer {
+        width: 180px;
+    }
+
+    .SearchContainer.Focused {
+        width: 240px;
+    }
 }
 
-@media (max-width: 768px) and (min-width: 641px) {
-    /* Small tablets - keep search, reduce spacing */
+@media (max-width: 768px) {
     .Actions {
-        gap: 0.7rem;
+        position: relative;
+        gap: 0.75rem;
         padding: 0.4rem;
+        transition: all 0.3s ease;
     }
-    
-    .SearchBtn,
+
+    .Actions.SearchMode {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+    }
+
+    .SearchToggle {
+        display: flex;
+        width: 38px;
+        height: 38px;
+    }
+
+    .SearchContainer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        padding: 0;
+        opacity: 0;
+        pointer-events: none;
+        border-color: transparent;
+        background: transparent;
+        z-index: 10;
+    }
+
+    .SearchContainer.Focused {
+        width: 320px;
+        height: 50px;
+        padding: 0 0.85rem;
+        opacity: 1;
+        pointer-events: auto;
+        border-color: var(--color-white-50);
+        background: var(--color-black-70);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 30px var(--color-black-50), 0 0 20px var(--color-white-10);
+        transform: translate(-50%, -50%);
+    }
+
+    .SearchToggle.Hidden,
+    .ProfileContainer.Hidden,
+    .SignInBtn.Hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.8);
+        transition: all 0.3s ease;
+    }
+
     .ProfileBtn {
         width: 38px;
         height: 38px;
     }
+
+    .SignOutBtn {
+        width: 30px;
+        height: 30px;
+    }
 }
 
-@media (max-width: 640px) and (min-width: 481px) {
-    /* Large phones - hide search */
-    .SearchBtn {
-        display: none;
-    }
-    
+@media (max-width: 640px) {
     .Actions {
-        gap: 0.6rem;
+        position: relative;
+        gap: 0.5rem;
         padding: 0.35rem;
     }
-    
+
+    .Actions.SearchMode {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+    }
+
+    .SearchToggle {
+        width: 36px;
+        height: 36px;
+    }
+
+    .SearchContainer {
+        height: 36px;
+    }
+
+    .SearchContainer.Focused {
+        width: 300px;
+        height: 48px;
+        background: var(--color-black-70);
+        backdrop-filter: blur(12px);
+        border-color: var(--color-white-50);
+        box-shadow: 0 4px 30px var(--color-black-50), 0 0 20px var(--color-white-10);
+        transform: translate(-50%, -50%);
+    }
+
+    .SearchInput {
+        font-size: 0.85rem;
+    }
+
+    .SearchIcon {
+        width: 16px;
+        height: 16px;
+    }
+
     .ProfileBtn {
         width: 36px;
         height: 36px;
     }
-    
+
     .SignInBtn {
-        padding: 0.45rem 0.9rem;
+        padding: 0.45rem 0.85rem;
         font-size: 0.85rem;
     }
 }
 
-@media (max-width: 480px) and (min-width: 361px) {
-    /* Small phones */
-    .SearchBtn {
-        display: none;
-    }
-    
+@media (max-width: 480px) {
     .Actions {
+        position: relative;
         gap: 0.4rem;
-        padding: 0.25rem;
+        padding: 0.3rem;
     }
-    
+
+    .Actions.SearchMode {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+    }
+
+    .SearchToggle {
+        width: 34px;
+        height: 34px;
+    }
+
+    .SearchContainer {
+        height: 34px;
+    }
+
+    .SearchContainer.Focused {
+        width: 280px;
+        height: 46px;
+        padding: 0 0.7rem;
+        background: var(--color-black-70);
+        backdrop-filter: blur(12px);
+        border-color: var(--color-white-50);
+        box-shadow: 0 4px 30px var(--color-black-50), 0 0 20px var(--color-white-10);
+        transform: translate(-50%, -50%);
+    }
+
+    .SearchInput {
+        font-size: 0.8rem;
+    }
+
     .ProfileBtn {
         width: 32px;
         height: 32px;
     }
-    
+
     .SignOutBtn {
         width: 28px;
         height: 28px;
     }
-    
+
     .SignInBtn {
-        padding: 0.4rem 0.8rem;
+        padding: 0.4rem 0.75rem;
         font-size: 0.8rem;
+    }
+
+    .ClearBtn {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 380px) {
+    .SearchContainer.Focused {
+        width: 240px;
     }
 }
 
 @media (max-width: 360px) {
-    /* Very small phones */
-    .SearchBtn {
-        display: none;
-    }
-    
     .SignInBtn {
-        padding: 0.3rem 0.6rem;
+        padding: 0.35rem 0.6rem;
         font-size: 0.75rem;
     }
 }

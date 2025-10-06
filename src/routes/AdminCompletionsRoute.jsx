@@ -12,6 +12,8 @@ export const adminCompletionsAction = async ({ request }) => {
     const levelId = formData.get('levelId')?.trim()
     const youtubeLink = formData.get('youtubeLink')?.trim()
     const completedAt = formData.get('completedAt')?.trim()
+    const isVerifier = formData.get('isVerifier') === 'true'
+    const isEdit = formData.get('isEdit') === 'true'
 
     // Validation
     if (!userId) errors.userId = 'User ID is required'
@@ -22,27 +24,45 @@ export const adminCompletionsAction = async ({ request }) => {
     }
 
     try {
-        // Add the completed level
-        const result = await supabaseOperations.addCompletedLevel(
-            userId,
-            levelId,
-            youtubeLink || null,
-            completedAt || null
-        )
-
-        if (!result) {
-            throw new Error('Failed to add completed level')
-        }
-
-        return {
-            success: true,
-            message: `✅ Completed level added successfully for user ${userId}!`
+        let result
+        if (isEdit) {
+            // Update the completed level
+            result = await supabaseOperations.updateCompletedLevel(
+                userId,
+                levelId,
+                youtubeLink || null,
+                completedAt || null,
+                isVerifier
+            )
+            if (!result) {
+                throw new Error('Failed to update completed level')
+            }
+            return {
+                success: true,
+                message: `✅ Completed level updated successfully for user ${userId}!`
+            }
+        } else {
+            // Add the completed level
+            result = await supabaseOperations.addCompletedLevel(
+                userId,
+                levelId,
+                youtubeLink || null,
+                completedAt || null,
+                isVerifier
+            )
+            if (!result) {
+                throw new Error('Failed to add completed level')
+            }
+            return {
+                success: true,
+                message: `✅ Completed level added successfully for user ${userId}!`
+            }
         }
     } catch (error) {
-        console.error('Error adding completed level:', error)
+        console.error('Error processing completed level:', error)
         return {
             success: false,
-            message: error.message || 'Failed to add completed level. Please try again.'
+            message: error.message || 'Failed to process completed level. Please try again.'
         }
     }
 }
@@ -56,6 +76,13 @@ export default function AdminCompletionsRoute() {
     const [levels, setLevels] = useState([])
     const [isLoadingLevels, setIsLoadingLevels] = useState(true)
     const [selectedLevelId, setSelectedLevelId] = useState('')
+    const [userId, setUserId] = useState('')
+    const [youtubeLink, setYoutubeLink] = useState('')
+    const [completedAt, setCompletedAt] = useState('')
+    const [isVerifier, setIsVerifier] = useState(false)
+
+    // Check if we're in edit mode
+    const isEdit = searchParams.get('edit') === 'true'
 
     useEffect(() => {
         const loadLevels = async () => {
@@ -63,10 +90,32 @@ export default function AdminCompletionsRoute() {
                 const allLevels = await getLevels()
                 setLevels(allLevels)
 
-                // Pre-select level from URL params if provided
+                // Pre-fill data from URL params if provided (for edit mode)
                 const levelIdFromParams = searchParams.get('levelId')
+                const userIdFromParams = searchParams.get('userId')
+                const youtubeFromParams = searchParams.get('youtubeLink')
+                const completedAtFromParams = searchParams.get('completedAt')
+                const isVerifierFromParams = searchParams.get('isVerifier') === 'true'
+
                 if (levelIdFromParams) {
                     setSelectedLevelId(levelIdFromParams)
+                }
+                if (userIdFromParams) {
+                    setUserId(userIdFromParams)
+                }
+                if (youtubeFromParams) {
+                    setYoutubeLink(youtubeFromParams)
+                }
+                if (completedAtFromParams) {
+                    // Convert ISO string to datetime-local format
+                    const date = new Date(completedAtFromParams)
+                    const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                        .toISOString()
+                        .slice(0, 16)
+                    setCompletedAt(localDateTime)
+                }
+                if (isVerifierFromParams) {
+                    setIsVerifier(true)
                 }
             } catch (error) {
                 console.error('Failed to load levels:', error)
@@ -80,9 +129,9 @@ export default function AdminCompletionsRoute() {
     return (
         <div className={styles.AdminContainer}>
             <div className={styles.Header}>
-                <h1 className={styles.Title}>Add Completed Level</h1>
+                <h1 className={styles.Title}>{isEdit ? 'Edit Completion' : 'Add Completed Level'}</h1>
                 <p className={styles.Subtitle}>
-                    Add a completed level record to a user's profile
+                    {isEdit ? 'Update a completion record' : 'Add a completed level record to a user\'s profile'}
                 </p>
             </div>
 
@@ -93,37 +142,50 @@ export default function AdminCompletionsRoute() {
             )}
 
             <Form method="post" className={styles.SubmitForm}>
+                <input type="hidden" name="isEdit" value={isEdit} />
+                {/* Hidden inputs for locked fields in edit mode */}
+                {isEdit && (
+                    <>
+                        <input type="hidden" name="userId" value={userId} />
+                        <input type="hidden" name="levelId" value={selectedLevelId} />
+                    </>
+                )}
+
                 <fieldset className={styles.FormSection}>
                     <legend className={styles.SectionTitle}>User & Level Information</legend>
 
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            User ID (Discord ID) *
+                            User ID (Discord ID) * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <input
                                 type="text"
-                                name="userId"
-                                className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''}`}
+                                name={isEdit ? undefined : "userId"}
+                                className={`${styles.Input} ${actionData?.errors?.userId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 placeholder="Enter Discord user ID"
-                                required
+                                value={userId}
+                                onChange={(e) => setUserId(e.target.value)}
+                                disabled={isEdit}
+                                required={!isEdit}
                             />
                             {actionData?.errors?.userId && (
                                 <span className={styles.ErrorText}>{actionData.errors.userId}</span>
                             )}
                             <div className={styles.FileInputHint}>
-                                💡 Find the user ID from the leaderboard or profile page
+                                💡 {isEdit ? 'User ID cannot be changed' : 'Find the user ID from the leaderboard or profile page'}
                             </div>
                         </label>
                     </div>
 
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            Level ID *
+                            Level ID * {isEdit && <span className={styles.LockedBadge}>🔒 Locked</span>}
                             <select
-                                name="levelId"
-                                className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''}`}
+                                name={isEdit ? undefined : "levelId"}
+                                className={`${styles.Select} ${actionData?.errors?.levelId ? styles.Error : ''} ${isEdit ? styles.LockedInput : ''}`}
                                 value={selectedLevelId}
                                 onChange={(e) => setSelectedLevelId(e.target.value)}
-                                required
+                                disabled={isEdit}
+                                required={!isEdit}
                             >
                                 <option value="">Select a level</option>
                                 {isLoadingLevels ? (
@@ -139,6 +201,11 @@ export default function AdminCompletionsRoute() {
                             {actionData?.errors?.levelId && (
                                 <span className={styles.ErrorText}>{actionData.errors.levelId}</span>
                             )}
+                            {isEdit && (
+                                <div className={styles.FileInputHint}>
+                                    💡 Level ID cannot be changed
+                                </div>
+                            )}
                         </label>
                     </div>
 
@@ -150,6 +217,8 @@ export default function AdminCompletionsRoute() {
                                 name="youtubeLink"
                                 className={styles.Input}
                                 placeholder="https://youtube.com/watch?v=..."
+                                value={youtubeLink}
+                                onChange={(e) => setYoutubeLink(e.target.value)}
                             />
                             <div className={styles.FileInputHint}>
                                 💡 Full YouTube URL (e.g., https://youtube.com/watch?v=dQw4w9WgXcQ)
@@ -164,11 +233,30 @@ export default function AdminCompletionsRoute() {
                                 type="datetime-local"
                                 name="completedAt"
                                 className={styles.Input}
+                                value={completedAt}
+                                onChange={(e) => setCompletedAt(e.target.value)}
                             />
                             <div className={styles.FileInputHint}>
                                 💡 Leave empty to use current date/time
                             </div>
                         </label>
+                    </div>
+
+                    <div className={styles.FormGroup}>
+                        <label className={styles.CheckboxLabel}>
+                            <input
+                                type="checkbox"
+                                name="isVerifier"
+                                className={styles.Checkbox}
+                                checked={isVerifier}
+                                onChange={(e) => setIsVerifier(e.target.checked)}
+                                value="true"
+                            />
+                            <span className={styles.CheckboxText}>This user is a verifier for this level</span>
+                        </label>
+                        <div className={styles.FileInputHint}>
+                            💡 Verifiers are shown at the top of the level page and excluded from the leaderboard
+                        </div>
                     </div>
                 </fieldset>
 
@@ -184,7 +272,9 @@ export default function AdminCompletionsRoute() {
                         disabled={isSubmitting}
                         className={`${styles.SubmitBtn} ${styles.AddBtn}`}
                     >
-                        {isSubmitting ? 'Adding Completion...' : 'Add Completion'}
+                        {isSubmitting
+                            ? (isEdit ? 'Updating Completion...' : 'Adding Completion...')
+                            : (isEdit ? 'Update Completion' : 'Add Completion')}
                     </button>
                 </div>
             </Form>

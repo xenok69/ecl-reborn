@@ -2,7 +2,7 @@ import styles from "./Navigation.module.css";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 
-export default function Navigation({ navItems, activeNav, onNavChange }) {
+export default function Navigation({ navItems, activeNav, onNavChange, className }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,7 +47,7 @@ export default function Navigation({ navItems, activeNav, onNavChange }) {
   };
 
   return (
-    <nav className={styles.Navigation}>
+    <nav className={`${styles.Navigation} ${className ?? ''}`} aria-label="Main navigation">
       {items.map((item) => (
         <button
           key={item.id}
@@ -55,10 +55,12 @@ export default function Navigation({ navItems, activeNav, onNavChange }) {
             currentActiveNav === item.id ? styles.NavActive : ""
           }`}
           onClick={() => handleNavClick(item)}
+          aria-label={item.label}
+          aria-current={currentActiveNav === item.id ? "page" : undefined}
         >
-          <span className={styles.NavIcon}>{item.icon}</span>
+          <span className={styles.NavIcon} aria-hidden="true">{item.icon}</span>
           <span className={styles.NavLabel}>{item.label}</span>
-          <div className={styles.NavHighlight}></div>
+          <div className={styles.NavHighlight} aria-hidden="true"></div>
         </button>
       ))}
     </nav>

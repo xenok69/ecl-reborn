@@ -130,7 +130,7 @@ export default function AboutRoute() {
           </p>
           <div className={styles.githubLinks}>
             <a
-              href="https://github.com"
+              href="https://github.com/xenok69/ecl-reborn"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.githubButton}

@@ -3,14 +3,50 @@ import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
 import styles from './UserProfileRoute.module.css'
 
-export const userProfileLoader = async ({ params }) => {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
+export const userProfileLoader = async ({ params, request }) => {
     try {
+        // Check if request was aborted before starting
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                userId: params.userId,
+                user: null,
+                completedLevels: [],
+                totalPoints: 0,
+                leaderboardRank: null
+            }
+        }
+
         const userId = params.userId
 
-        // Fetch user activity data
-        const userActivity = await supabaseOperations.getUserActivity(userId)
+        if (!userId) {
+            return {
+                error: 'Invalid user ID',
+                userId,
+                user: null,
+                completedLevels: [],
+                totalPoints: 0,
+                leaderboardRank: null
+            }
+        }
+
+        // Fetch user activity and levels in parallel to avoid race conditions
+        const [userActivity, allLevels] = await Promise.all([
+            supabaseOperations.getUserActivity(userId),
+            getLevels()
+        ])
+
+        // Check if request was aborted after initial fetches
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                userId,
+                user: null,
+                completedLevels: [],
+                totalPoints: 0,
+                leaderboardRank: null
+            }
+        }
 
         if (!userActivity) {
             return {
@@ -23,8 +59,6 @@ export const userProfileLoader = async ({ params }) => {
             }
         }
 
-        // Fetch all levels to get details of completed levels
-        const allLevels = await getLevels()
         const completedLevelData = userActivity.completed_levels || []
 
         console.log('🔍 Debug - Completed Level Data from DB:', completedLevelData)
@@ -59,6 +93,18 @@ export const userProfileLoader = async ({ params }) => {
                 .from('user_activity')
                 .select('user_id, completed_levels')
 
+            // Check if request was aborted after fetching users
+            if (request.signal.aborted) {
+                return {
+                    error: null,
+                    userId,
+                    user: null,
+                    completedLevels: [],
+                    totalPoints: 0,
+                    leaderboardRank: null
+                }
+            }
+
             if (allUsers) {
                 // Calculate points for each user
                 const userScores = allUsers.map(user => {
@@ -83,7 +129,9 @@ export const userProfileLoader = async ({ params }) => {
                 }
             }
         } catch (error) {
-            console.warn('Could not calculate leaderboard rank:', error)
+            if (!request.signal.aborted) {
+                console.warn('Could not calculate leaderboard rank:', error)
+            }
         }
 
         return {
@@ -95,9 +143,12 @@ export const userProfileLoader = async ({ params }) => {
             error: null
         }
     } catch (error) {
-        console.error('Failed to load user profile:', error)
+        // Don't log errors if the request was aborted
+        if (!request.signal.aborted) {
+            console.error('Failed to load user profile:', error)
+        }
         return {
-            error: error.message,
+            error: request.signal.aborted ? null : error.message,
             userId: params.userId,
             user: null,
             completedLevels: [],

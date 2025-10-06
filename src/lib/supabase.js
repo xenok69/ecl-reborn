@@ -424,7 +424,7 @@ export const supabaseOperations = {
     }
   },
 
-  async addCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null) {
+  async addCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null, isVerifier = false) {
     if (!supabase) {
       console.warn('Supabase not configured, skipping completed level update')
       return null
@@ -452,7 +452,8 @@ export const supabaseOperations = {
         const newEntry = {
           lvl: levelId,
           yt: youtubeLink,
-          completedAt: completedAt || new Date().toISOString()
+          completedAt: completedAt || new Date().toISOString(),
+          verifier: isVerifier
         }
         const updatedLevels = [...currentLevels, newEntry]
 
@@ -481,6 +482,108 @@ export const supabaseOperations = {
       }
     } catch (error) {
       console.error('Supabase add completed level error:', error)
+      throw error
+    }
+  },
+
+  async removeCompletedLevel(userId, levelId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping completed level removal')
+      return null
+    }
+
+    try {
+      // First get current user activity
+      const { data: currentActivity, error: fetchError } = await supabase
+        .from('user_activity')
+        .select('completed_levels')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current activity:', fetchError)
+        throw fetchError
+      }
+
+      const currentLevels = currentActivity?.completed_levels || []
+
+      // Filter out the level to remove
+      const updatedLevels = currentLevels.filter(entry => String(entry.lvl) !== String(levelId))
+
+      const { data, error } = await supabase
+        .from('user_activity')
+        .update({
+          completed_levels: updatedLevels,
+          last_online: new Date().toISOString()
+        })
+        .eq('user_id', String(userId))
+        .select()
+
+      if (error) {
+        console.error('Error removing completed level:', error)
+        throw error
+      }
+
+      console.log('✅ Completed level removed successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase remove completed level error:', error)
+      throw error
+    }
+  },
+
+  async updateCompletedLevel(userId, levelId, youtubeLink = null, completedAt = null, isVerifier = false) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping completed level update')
+      return null
+    }
+
+    try {
+      // First get current user activity
+      const { data: currentActivity, error: fetchError } = await supabase
+        .from('user_activity')
+        .select('completed_levels')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current activity:', fetchError)
+        throw fetchError
+      }
+
+      const currentLevels = currentActivity?.completed_levels || []
+
+      // Find and update the level
+      const updatedLevels = currentLevels.map(entry => {
+        if (String(entry.lvl) === String(levelId)) {
+          return {
+            lvl: levelId,
+            yt: youtubeLink,
+            completedAt: completedAt || entry.completedAt || new Date().toISOString(),
+            verifier: isVerifier
+          }
+        }
+        return entry
+      })
+
+      const { data, error } = await supabase
+        .from('user_activity')
+        .update({
+          completed_levels: updatedLevels,
+          last_online: new Date().toISOString()
+        })
+        .eq('user_id', String(userId))
+        .select()
+
+      if (error) {
+        console.error('Error updating completed level:', error)
+        throw error
+      }
+
+      console.log('✅ Completed level updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase update completed level error:', error)
       throw error
     }
   },

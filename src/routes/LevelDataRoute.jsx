@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLoaderData, useNavigate, Link } from 'react-router'
 import { getLevels } from '../lib/levelUtils'
 import { supabaseOperations } from '../lib/supabase'
@@ -5,11 +6,20 @@ import { useAuth } from '../hooks/useAuth'
 import { useAdmin } from '../hooks/useAdmin'
 import styles from './LevelDataRoute.module.css'
 
-export const levelDataLoader = async ({ params }) => {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
+export const levelDataLoader = async ({ params, request }) => {
     try {
-        const placement = parseInt(params.placement)
+        // Check if request was aborted before starting
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                placement: params.placement,
+                level: null,
+                completedBy: [],
+                totalLevels: 0
+            }
+        }
+
+        const placement = parseInt(params.placement, 10)
 
         if (isNaN(placement) || placement < 1) {
             return {
@@ -23,6 +33,18 @@ export const levelDataLoader = async ({ params }) => {
 
         // Fetch all levels
         const allLevels = await getLevels()
+
+        // Check if request was aborted after fetching levels
+        if (request.signal.aborted) {
+            return {
+                error: null,
+                placement: params.placement,
+                level: null,
+                completedBy: [],
+                totalLevels: 0
+            }
+        }
+
         const level = allLevels.find(l => l.placement === placement)
 
         if (!level) {
@@ -35,10 +57,22 @@ export const levelDataLoader = async ({ params }) => {
             }
         }
 
-        // Fetch all user activities to find who completed this level
+        // Fetch users who completed this level
         let completedBy = []
         try {
             const users = await supabaseOperations.getUsersWhoCompletedLevel(level.id)
+
+            // Check if request was aborted after fetching users
+            if (request.signal.aborted) {
+                return {
+                    error: null,
+                    placement: params.placement,
+                    level: null,
+                    completedBy: [],
+                    totalLevels: 0
+                }
+            }
+
             completedBy = users.map((user, index) => {
                 // Find the completion entry for this specific level
                 const completionEntry = user.completed_levels?.find(entry => String(entry.lvl) === String(level.id))
@@ -47,6 +81,8 @@ export const levelDataLoader = async ({ params }) => {
                     username: user.username || 'Unknown User',
                     avatar: user.avatar,
                     completedOn: completionEntry?.completedAt || user.updated_at,
+                    youtubeLink: completionEntry?.yt || '',
+                    isVerifier: completionEntry?.verifier || false,
                     online: user.online
                 }
             })
@@ -54,7 +90,9 @@ export const levelDataLoader = async ({ params }) => {
             completedBy.sort((a, b) => new Date(b.completedOn) - new Date(a.completedOn))
             console.log(`✅ Found ${completedBy.length} users who completed this level`)
         } catch (error) {
-            console.warn('Could not fetch users who completed this level:', error)
+            if (!request.signal.aborted) {
+                console.warn('Could not fetch users who completed this level:', error)
+            }
         }
 
         return {
@@ -65,9 +103,12 @@ export const levelDataLoader = async ({ params }) => {
             error: null
         }
     } catch (error) {
-        console.error('Failed to load level data:', error)
+        // Don't log errors if the request was aborted
+        if (!request.signal.aborted) {
+            console.error('Failed to load level data:', error)
+        }
         return {
-            error: error.message,
+            error: request.signal.aborted ? null : error.message,
             placement: params.placement,
             level: null,
             completedBy: [],
@@ -82,6 +123,13 @@ export default function LevelDataRoute() {
     const { isAuthenticated } = useAuth()
     const { isAdmin } = useAdmin()
 
+    const [deleteConfirm, setDeleteConfirm] = useState(null)
+    const [deleteTimer, setDeleteTimer] = useState(0)
+
+    // Separate verifiers from regular players
+    const verifiers = completedBy.filter(player => player.isVerifier)
+    const regularPlayers = completedBy.filter(player => !player.isVerifier)
+
     const isFirstLevel = placement === 1
     const isLastLevel = placement === totalLevels
 
@@ -89,6 +137,65 @@ export default function LevelDataRoute() {
     const goToPrevious = () => navigate(`/level/${placement - 1}`)
     const goToNext = () => navigate(`/level/${placement + 1}`)
     const goToLast = () => navigate(`/level/${totalLevels}`)
+
+    const handleEditCompletion = (player) => {
+        // Navigate to admin completions with pre-filled data
+        const params = new URLSearchParams({
+            edit: 'true',
+            userId: player.userId,
+            levelId: level.id,
+            youtubeLink: player.youtubeLink || '',
+            completedAt: player.completedOn || '',
+            isVerifier: player.isVerifier ? 'true' : 'false'
+        })
+        navigate(`/admin/completions?${params.toString()}`)
+    }
+
+    const handleDeleteCompletion = (player) => {
+        setDeleteConfirm({
+            userId: player.userId,
+            username: player.username,
+            levelId: level.id,
+            levelName: level.levelName
+        })
+        setDeleteTimer(3)
+
+        const countdown = setInterval(() => {
+            setDeleteTimer(prev => {
+                if (prev <= 1) {
+                    clearInterval(countdown)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+    }
+
+    const confirmDeleteCompletion = async () => {
+        try {
+            const result = await supabaseOperations.removeCompletedLevel(
+                deleteConfirm.userId,
+                deleteConfirm.levelId
+            )
+            console.log('Completion deleted successfully:', result)
+
+            alert(`Completion for "${deleteConfirm.username}" on "${deleteConfirm.levelName}" has been deleted!`)
+
+            // Refresh the page to show updated data
+            window.location.reload()
+        } catch (error) {
+            console.error('Error deleting completion:', error)
+            alert(`Failed to delete completion: ${error.message}`)
+        } finally {
+            setDeleteConfirm(null)
+            setDeleteTimer(0)
+        }
+    }
+
+    const cancelDeleteCompletion = () => {
+        setDeleteConfirm(null)
+        setDeleteTimer(0)
+    }
 
     if (error) {
         return (
@@ -229,6 +336,65 @@ export default function LevelDataRoute() {
                 )}
             </div>
 
+            {/* Verifiers Section - Only for Admins */}
+            {isAdmin && verifiers.length > 0 && (
+                <div className={styles.verifiersSection}>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>Verifiers</h2>
+                    </div>
+                    <div className={styles.verifiersList}>
+                        {verifiers.map((verifier) => (
+                            <div key={verifier.userId} className={styles.verifierCard}>
+                                <Link to={`/profile/${verifier.userId}`} className={styles.verifierLink}>
+                                    <div className={styles.verifierInfo}>
+                                        {verifier.avatar ? (
+                                            <img
+                                                src={`https://cdn.discordapp.com/avatars/${verifier.userId}/${verifier.avatar}.png?size=64`}
+                                                alt={verifier.username}
+                                                className={styles.verifierAvatar}
+                                            />
+                                        ) : (
+                                            <div className={styles.verifierAvatarPlaceholder}>
+                                                {verifier.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className={styles.verifierDetails}>
+                                            <span className={styles.verifierName}>{verifier.username}</span>
+                                            <span className={styles.verifierDate}>
+                                                {verifier.completedOn ? new Date(verifier.completedOn).toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <div className={styles.verifierActions}>
+                                    {verifier.youtubeLink && (
+                                        <a
+                                            href={verifier.youtubeLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.verifierVideoLink}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            🎥 Video
+                                        </a>
+                                    )}
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleEditCompletion(verifier)
+                                        }}
+                                        className={styles.verifierEditBtn}
+                                        title="Edit verifier"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Completed By Table at Bottom - Protected */}
             {isAuthenticated && (
                 <div className={styles.completedBySection}>
@@ -244,7 +410,7 @@ export default function LevelDataRoute() {
                         )}
                     </div>
 
-                    {completedBy.length > 0 ? (
+                    {regularPlayers.length > 0 ? (
                         <div className={styles.tableWrapper}>
                             <table className={styles.completedTable}>
                                 <thead>
@@ -252,11 +418,13 @@ export default function LevelDataRoute() {
                                         <th>#</th>
                                         <th>Player</th>
                                         <th>Completed On</th>
+                                        <th>Video</th>
                                         <th>Status</th>
+                                        {isAdmin && <th>Actions</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {completedBy.map((player, index) => (
+                                    {regularPlayers.map((player, index) => (
                                         <tr key={player.userId}>
                                             <td>{index + 1}</td>
                                             <td>
@@ -279,10 +447,51 @@ export default function LevelDataRoute() {
                                             </td>
                                             <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
                                             <td>
+                                                {player.youtubeLink ? (
+                                                    <a
+                                                        href={player.youtubeLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.videoLink}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        🎥 Watch
+                                                    </a>
+                                                ) : (
+                                                    <span className={styles.noVideo}>-</span>
+                                                )}
+                                            </td>
+                                            <td>
                                                 <span className={player.online ? styles.statusOnline : styles.statusOffline}>
                                                     {player.online ? '🟢 Online' : '🔴 Offline'}
                                                 </span>
                                             </td>
+                                            {isAdmin && (
+                                                <td>
+                                                    <div className={styles.actionButtons}>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault()
+                                                                handleEditCompletion(player)
+                                                            }}
+                                                            className={styles.editBtn}
+                                                            title="Edit completion"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault()
+                                                                handleDeleteCompletion(player)
+                                                            }}
+                                                            className={styles.deleteBtn}
+                                                            title="Delete completion"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -301,6 +510,35 @@ export default function LevelDataRoute() {
                     Back to Challenges
                 </button>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className={styles.DeleteModal}>
+                    <div className={styles.DeleteModalContent}>
+                        <h3>Delete Completion</h3>
+                        <p>
+                            Are you sure you want to delete <strong>"{deleteConfirm.username}"</strong>'s completion
+                            of <strong>"{deleteConfirm.levelName}"</strong>?
+                        </p>
+                        <p>This action cannot be undone.</p>
+                        <div className={styles.DeleteModalActions}>
+                            <button
+                                onClick={cancelDeleteCompletion}
+                                className={styles.CancelBtn}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteCompletion}
+                                disabled={deleteTimer > 0}
+                                className={styles.ConfirmDeleteBtn}
+                            >
+                                {deleteTimer > 0 ? `Wait ${deleteTimer}s` : 'Confirm Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
