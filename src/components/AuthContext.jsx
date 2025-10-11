@@ -141,16 +141,11 @@ export const AuthProvider = ({ children }) => {
       provider: 'discord',
       accessToken: accessToken,
       signedInAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour default
     };
   };
 
   const validateUser = async (user) => {
-    if (!user.accessToken || !user.expiresAt) return false;
-    
-    if (new Date(user.expiresAt) <= new Date()) {
-      return false;
-    }
+    if (!user.accessToken) return false;
 
     try {
       const response = await fetch('https://discord.com/api/users/@me', {

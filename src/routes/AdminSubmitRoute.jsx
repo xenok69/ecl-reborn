@@ -65,12 +65,32 @@ export const adminSubmitAction = async ({ request, params }) => {
     const creator = formData.get('creator')?.trim()
     const verifier = formData.get('verifier')?.trim()
     const levelId = formData.get('levelId')?.trim()
-    const youtubeVideoId = formData.get('youtubeVideoId')?.trim()
+    const youtubeVideoInput = formData.get('youtubeVideoId')?.trim()
     const videoFile = formData.get('videoFile')
     const difficulty = formData.get('difficulty')
     const gamemode = formData.get('gamemode')
     const decorationStyle = formData.get('decorationStyle')
     const selectedExtraTags = formData.getAll('selectedExtraTags')
+
+    // Extract video ID from full YouTube URL or use as-is if it's already an ID
+    const extractYoutubeId = (input) => {
+        if (!input) return null
+
+        // Try to match various YouTube URL formats
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+            /^([a-zA-Z0-9_-]{11})$/ // If it's just the ID
+        ]
+
+        for (const pattern of patterns) {
+            const match = input.match(pattern)
+            if (match) return match[1]
+        }
+
+        return null
+    }
+
+    const youtubeVideoId = extractYoutubeId(youtubeVideoInput)
 
     // Validation - only check required fields
     if (!levelName) errors.levelName = 'Level name is required'
@@ -78,7 +98,12 @@ export const adminSubmitAction = async ({ request, params }) => {
     if (!creator) errors.creator = 'Creator is required'
     if (!verifier) errors.verifier = 'Verifier is required'
     if (!levelId) errors.levelId = 'Level ID is required'
-    
+
+    // Validate YouTube video input
+    if (youtubeVideoInput && !youtubeVideoId) {
+        errors.video = 'Invalid YouTube URL or video ID. Please check the format.'
+    }
+
     // Optional fields - no validation needed
 
     // Validate placement is a number
@@ -675,17 +700,17 @@ export default function AdminSubmitRoute() {
                     
                     <div className={styles.FormGroup}>
                         <label className={styles.Label}>
-                            YouTube Video ID *
+                            YouTube Video Link *
                             <input
                                 type="text"
                                 name="youtubeVideoId"
                                 className={`${styles.Input} ${actionData?.errors?.video ? styles.Error : ''}`}
-                                placeholder="Enter YouTube video ID (e.g., dQw4w9WgXcQ)"
+                                placeholder="Paste full YouTube URL (e.g., https://youtube.com/watch?v=dQw4w9WgXcQ)"
                                 defaultValue={editLevel?.youtubeVideoId || ''}
                                 required
                             />
                             <div className={styles.FileInputHint}>
-                                💡 Extract the video ID from the YouTube URL. For example: https://youtube.com/watch?v=<strong>dQw4w9WgXcQ</strong>
+                                💡 Paste the full YouTube URL. Supports youtube.com/watch, youtu.be, youtube.com/shorts, or just the video ID.
                             </div>
                         </label>
                     </div>
