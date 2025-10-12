@@ -54,12 +54,25 @@ export default function LevelDisplay({
               <span className={styles.InfoValue}>{verifier}</span>
             </div>
             <div className={styles.InfoItem}>
-              <span className={styles.InfoLabel}>ID:</span>
-              <span className={styles.InfoValue}>{id}</span>
-            </div>
-            <div className={styles.InfoItem}>
               <span className={styles.InfoLabel}>Points:</span>
               <span className={styles.PointsValue}>{points}</span>
+            </div>
+            <div className={styles.InfoItem}>
+              <span className={styles.InfoLabel}>ID:</span>
+              <span className={styles.InfoValue}>
+                {id}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(id);
+                  }}
+                  className={styles.CopyBtn}
+                  title="Copy ID to clipboard"
+                >
+                  📋
+                </button>
+              </span>
             </div>
           </div>
         </div>

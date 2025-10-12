@@ -322,6 +322,21 @@ export default function LevelDataRoute() {
                             <span className={styles.metaValue}>{level.tags.decorationStyle}</span>
                         </div>
                     )}
+                    <div className={styles.metadataItem}>
+                        <span className={styles.metaLabel}>ID</span>
+                        <span className={styles.metaValue}>
+                            {level.id}
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(level.id)
+                                }}
+                                className={styles.copyBtn}
+                                title="Copy ID to clipboard"
+                            >
+                                📋
+                            </button>
+                        </span>
+                    </div>
                 </div>
 
                 {/* Extra Tags as inline badges */}

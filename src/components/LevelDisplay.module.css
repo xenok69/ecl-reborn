@@ -130,6 +130,32 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.CopyBtn {
+    padding: 0.25rem 0.5rem;
+    background: var(--color-blue);
+    border: 1px solid var(--color-blue-light);
+    border-radius: 6px;
+    color: var(--color-white);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.CopyBtn:hover {
+    background: var(--color-blue-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--color-blue-30);
+}
+
+.CopyBtn:active {
+    transform: translateY(0);
 }
 
 .PointsValue {
