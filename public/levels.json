@@ -29,6 +29,7 @@
     "SWING": "Swing"
   },
   "decorationStyles": {
+    "GLOW": "Glow",
     "EFFECT": "Effect",
     "MODERN": "Modern",
     "CLASSIC": "Classic",
