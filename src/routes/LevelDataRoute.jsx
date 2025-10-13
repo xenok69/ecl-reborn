@@ -86,8 +86,8 @@ export const levelDataLoader = async ({ params, request }) => {
                     online: user.online
                 }
             })
-            // Sort by completion date, most recent first
-            completedBy.sort((a, b) => new Date(b.completedOn) - new Date(a.completedOn))
+            // Sort by completion date, earliest first
+            completedBy.sort((a, b) => new Date(a.completedOn) - new Date(b.completedOn))
             console.log(`✅ Found ${completedBy.length} users who completed this level`)
         } catch (error) {
             if (!request.signal.aborted) {
