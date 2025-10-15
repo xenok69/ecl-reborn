@@ -82,6 +82,26 @@ export const userProfileLoader = async ({ params, request }) => {
 
         console.log('✅ Debug - Matched Completed Levels:', completedLevels.length, completedLevels.map(l => l.levelName))
 
+        // Clean up invalid level IDs (levels that don't exist in the list anymore)
+        const validLevelIds = new Set(allLevels.map(l => String(l.id)))
+        const cleanedLevelData = completedLevelData.filter(entry => validLevelIds.has(String(entry.lvl)))
+
+        // If there are invalid levels, update the database to remove them
+        if (cleanedLevelData.length !== completedLevelData.length) {
+            const removedCount = completedLevelData.length - cleanedLevelData.length
+            console.log(`🧹 Cleaning up ${removedCount} invalid level(s) from user's completed levels`)
+
+            try {
+                await supabaseOperations.updateUserActivity(userId, {
+                    completed_levels: cleanedLevelData
+                })
+                console.log('✅ Invalid levels cleaned up successfully')
+            } catch (cleanupError) {
+                console.error('⚠️ Failed to clean up invalid levels:', cleanupError)
+                // Don't fail the entire request if cleanup fails
+            }
+        }
+
         // Calculate total points from completed levels
         const totalPoints = completedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
 

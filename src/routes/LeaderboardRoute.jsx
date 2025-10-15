@@ -47,7 +47,7 @@ export const leaderboardLoader = async ({ request }) => {
         userId: user.user_id,
         username: user.username || 'Unknown User',
         avatar: user.avatar,
-        completedLevels: completedLevelData.length || 0,
+        completedLevels: userCompletedLevels.length,
         points,
         online: user.online
       }
