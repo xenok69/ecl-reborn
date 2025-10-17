@@ -37,6 +37,16 @@ const router = createBrowserRouter([
         loader: challengesLoader,
       },
       {
+        path: "challenges/extended",
+        element: <ChallengesRoute />,
+        loader: challengesLoader,
+      },
+      {
+        path: "challenges/legacy",
+        element: <ChallengesRoute />,
+        loader: challengesLoader,
+      },
+      {
         path: "challenges/:placement",
         element: <ChallengesRoute />,
         loader: challengesLoader,

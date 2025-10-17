@@ -2,19 +2,29 @@ import { supabaseOperations } from './supabase.js'
 
 /**
  * Calculate points based on placement
- * Formula: points = 1 + (99 * (totalLevels - placement) / (totalLevels - 1))
- * Where placement 1 = 100 points, last placement = 1 point
+ * Linear formula: placement 1 = 150 points, placement 150 = 1 point, placement > 150 = 0 points
+ * Scales automatically if fewer than 150 levels exist
  */
-export function calculatePoints(placement, totalLevels = 100) {
-    if (placement < 1 || placement > totalLevels) {
-        throw new Error(`Placement must be between 1 and ${totalLevels}`)
+export function calculatePoints(placement, totalLevels = 150) {
+    if (placement < 1) {
+        throw new Error(`Placement must be at least 1`)
     }
-    
-    if (totalLevels === 1) {
-        return 100
+
+    // Legacy levels (placement > 150) get 0 points
+    if (placement > 150) {
+        return 0
     }
-    
-    return Math.round(1 + (99 * (totalLevels - placement) / (totalLevels - 1)))
+
+    // If there's only one level in the scoring range, it gets max points
+    const maxScoringPlacement = Math.min(totalLevels, 150)
+    if (maxScoringPlacement === 1) {
+        return 150
+    }
+
+    // Linear scaling: 150 points at rank 1, 1 point at rank 150 (or max available)
+    // Formula: points = 150 - (placement - 1) * (149 / (maxScoringPlacement - 1))
+    const points = 150 - ((placement - 1) * (149 / (maxScoringPlacement - 1)))
+    return Math.round(points)
 }
 
 /**
@@ -24,34 +34,65 @@ export function calculatePoints(placement, totalLevels = 100) {
 export async function getLevels() {
     try {
         const supabaseLevels = await supabaseOperations.getLevels()
-        
+
         if (!supabaseLevels) {
             console.log('📭 No levels found in database')
             return []
         }
-        
+
         if (supabaseLevels.length === 0) {
             console.log('📭 Database is empty - no levels yet')
             return []
         }
-        
+
         console.log(`✅ Using Supabase data - ${supabaseLevels.length} levels found`)
-        
+
         // Transform Supabase flat data to match expected nested structure
-        const transformedLevels = supabaseLevels.map(level => ({
-            ...level,
-            tags: {
-                difficulty: level.difficulty,
-                gamemode: level.gamemode,
-                decorationStyle: level.decorationStyle,
-                extraTags: level.extraTags || []
-            },
-            // Calculate points based on placement
-            points: calculatePoints(level.placement, supabaseLevels.length)
-        }))
-        
+        const transformedLevels = []
+        const invalidLevels = []
+
+        for (const level of supabaseLevels) {
+            try {
+                transformedLevels.push({
+                    ...level,
+                    tags: {
+                        difficulty: level.difficulty,
+                        gamemode: level.gamemode,
+                        decorationStyle: level.decorationStyle,
+                        extraTags: level.extraTags || []
+                    },
+                    // Calculate points based on placement
+                    points: calculatePoints(level.placement, supabaseLevels.length)
+                })
+            } catch (pointsError) {
+                // Log the problematic level but don't crash the entire app
+                console.error(`⚠️ Invalid placement for level "${level.levelName}" (ID: ${level.id}): placement=${level.placement}, totalLevels=${supabaseLevels.length}`)
+                invalidLevels.push({
+                    id: level.id,
+                    name: level.levelName,
+                    placement: level.placement,
+                    error: pointsError.message
+                })
+            }
+        }
+
+        // If there are invalid levels, provide detailed error information
+        if (invalidLevels.length > 0) {
+            console.error(`\n🚨 DATABASE CORRUPTION DETECTED 🚨`)
+            console.error(`Found ${invalidLevels.length} level(s) with invalid placement values:`)
+            invalidLevels.forEach(level => {
+                console.error(`  - "${level.name}" (ID: ${level.id}): ${level.error}`)
+            })
+            console.error(`\n💡 To fix this, run the repair script:`)
+            console.error(`   import { repairPlacements } from './utils/repairPlacements.js'`)
+            console.error(`   await repairPlacements(false) // false = actually fix, true = dry run`)
+
+            // Throw a more helpful error
+            throw new Error(`Placement must be between 1 and ${supabaseLevels.length}`)
+        }
+
         return transformedLevels
-        
+
     } catch (error) {
         console.error('❌ Failed to fetch levels from Supabase:', error.message)
         throw new Error(`Database error: ${error.message}`)

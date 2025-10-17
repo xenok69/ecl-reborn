@@ -14,6 +14,59 @@ export const supabase = supabaseUrl && supabaseAnonKey
 // Export supabase in operations for direct access
 export { supabase as supabaseClient }
 
+// Configuration: Enable automatic placement repair after operations
+// Set to false if you have database triggers installed (see supabase_placement_fix.sql)
+const AUTO_REPAIR_ENABLED = true
+
+/**
+ * Automatically repair placement sequence after database operations
+ * This ensures placements are always sequential (1, 2, 3, ..., N)
+ * Only runs if AUTO_REPAIR_ENABLED is true
+ */
+async function autoRepairPlacements() {
+  if (!AUTO_REPAIR_ENABLED || !supabase) {
+    return
+  }
+
+  try {
+    console.log('🔄 Auto-repairing placements...')
+
+    // Fetch all levels ordered by current placement
+    const { data: levels, error: fetchError } = await supabase
+      .from('levels')
+      .select('id, placement')
+      .order('placement', { ascending: true })
+
+    if (fetchError) {
+      console.error('⚠️ Auto-repair fetch failed:', fetchError)
+      return
+    }
+
+    // Check if repairs are needed and fix them
+    let repairsNeeded = false
+    for (let i = 0; i < levels.length; i++) {
+      const correctPlacement = i + 1
+      if (levels[i].placement !== correctPlacement) {
+        repairsNeeded = true
+        const { error: updateError } = await supabase
+          .from('levels')
+          .update({ placement: correctPlacement })
+          .eq('id', levels[i].id)
+
+        if (updateError) {
+          console.error('⚠️ Auto-repair update failed for level:', levels[i].id, updateError)
+        }
+      }
+    }
+
+    if (repairsNeeded) {
+      console.log('✅ Auto-repair completed successfully')
+    }
+  } catch (error) {
+    console.error('⚠️ Auto-repair failed:', error)
+  }
+}
+
 // Database operations
 export const supabaseOperations = {
   // Expose supabase client
@@ -116,6 +169,10 @@ export const supabaseOperations = {
       }
 
       console.log('✅ Level added successfully with placement shifting:', data)
+
+      // Auto-repair placements after operation to ensure consistency
+      await autoRepairPlacements()
+
       return data
     } catch (error) {
       console.error('Supabase add level error:', error)
@@ -209,6 +266,10 @@ export const supabaseOperations = {
       }
 
       console.log('✅ Level updated successfully with placement shifting:', data)
+
+      // Auto-repair placements after operation to ensure consistency
+      await autoRepairPlacements()
+
       return data
     } catch (error) {
       console.error('Supabase update level error:', error)
@@ -282,6 +343,10 @@ export const supabaseOperations = {
       }
 
       console.log('✅ Level deleted successfully with placement gap filled:', levelId)
+
+      // Auto-repair placements after operation to ensure consistency
+      await autoRepairPlacements()
+
       return true
     } catch (error) {
       console.error('Supabase delete error:', error)

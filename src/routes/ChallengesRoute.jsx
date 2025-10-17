@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useLoaderData, useNavigation, useNavigate, Link } from 'react-router'
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
@@ -13,6 +13,7 @@ export const challengesLoader = async ({ params, request }) => {
             return {
                 levels: [],
                 placement: params.placement,
+                listType: 'main',
                 error: null
             }
         }
@@ -24,13 +25,32 @@ export const challengesLoader = async ({ params, request }) => {
             return {
                 levels: [],
                 placement: params.placement,
+                listType: 'main',
                 error: null
             }
         }
 
+        // Determine list type from URL
+        const url = new URL(request.url)
+        const pathname = url.pathname
+        let listType = 'main'
+        let filteredLevels = allLevels
+
+        if (pathname.includes('/challenges/extended')) {
+            listType = 'extended'
+            filteredLevels = allLevels.filter(level => level.placement >= 101 && level.placement <= 150)
+        } else if (pathname.includes('/challenges/legacy')) {
+            listType = 'legacy'
+            filteredLevels = allLevels.filter(level => level.placement > 150)
+        } else if (pathname === '/challenges/' || pathname === '/challenges') {
+            listType = 'main'
+            filteredLevels = allLevels.filter(level => level.placement >= 1 && level.placement <= 100)
+        }
+
         return {
-            levels: allLevels,
+            levels: filteredLevels,
             placement: params.placement,
+            listType: listType,
             error: null
         }
     } catch (error) {
@@ -41,55 +61,22 @@ export const challengesLoader = async ({ params, request }) => {
         return {
             levels: [],
             placement: params.placement,
+            listType: 'main',
             error: request.signal.aborted ? null : error.message
         }
     }
 }
 
 export default function ChallengesRoute() {
-    const { levels, placement: urlPlacement, error } = useLoaderData()
+    const { levels, placement: urlPlacement, listType, error } = useLoaderData()
     const navigation = useNavigation()
     const navigate = useNavigate()
     const { isAdmin } = useAdmin()
-    
-    const [currentPage, setCurrentPage] = useState(() => {
-        // If placement is provided in URL, calculate initial page
-        if (urlPlacement) {
-            const placementNum = parseInt(urlPlacement, 10)
-            if (!isNaN(placementNum) && placementNum > 0) {
-                return Math.ceil(placementNum / 10)
-            }
-        }
-        return 1
-    })
-    const [levelsPerPage] = useState(10)
+
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const [deleteTimer, setDeleteTimer] = useState(0)
 
     const isLoading = navigation.state === 'loading'
-
-    // Sync currentPage when urlPlacement changes (e.g., from navigation)
-    useEffect(() => {
-        if (urlPlacement) {
-            const placementNum = parseInt(urlPlacement, 10)
-            if (!isNaN(placementNum) && placementNum > 0) {
-                const newPage = Math.ceil(placementNum / 10)
-                setCurrentPage(newPage)
-            }
-        }
-    }, [urlPlacement])
-
-    // Calculate pagination
-    const indexOfLastLevel = currentPage * levelsPerPage
-    const indexOfFirstLevel = indexOfLastLevel - levelsPerPage
-    const currentLevels = levels.slice(indexOfFirstLevel, indexOfLastLevel)
-    const totalPages = Math.ceil(levels.length / levelsPerPage)
-
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber)
-        // Scroll to top when changing pages
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
 
     const handleAddLevel = () => {
         navigate('/submit')
@@ -140,22 +127,15 @@ export default function ChallengesRoute() {
         setDeleteTimer(0)
     }
 
-    const getPaginationRange = () => {
-        const range = []
-        const maxVisible = 5
-        let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
-        let end = Math.min(totalPages, start + maxVisible - 1)
-        
-        // Adjust start if we're near the end
-        if (end - start < maxVisible - 1) {
-            start = Math.max(1, end - maxVisible + 1)
+    const getListTitle = () => {
+        switch (listType) {
+            case 'extended':
+                return 'Extended List (101-150)'
+            case 'legacy':
+                return 'Legacy List (151+)'
+            default:
+                return 'Main List (1-100)'
         }
-        
-        for (let i = start; i <= end; i++) {
-            range.push(i)
-        }
-        
-        return range
     }
 
     return (
@@ -165,17 +145,40 @@ export default function ChallengesRoute() {
                 <p className={styles.Subtitle}>
                     The ultimate collection of Geometry Dash's most challenging levels
                 </p>
+
+                {/* List navigation buttons */}
+                <div className={styles.ListNavigation}>
+                    <button
+                        onClick={() => navigate('/challenges/')}
+                        className={`${styles.ListNavBtn} ${listType === 'main' ? styles.Active : ''}`}
+                    >
+                        Main
+                    </button>
+                    <button
+                        onClick={() => navigate('/challenges/extended')}
+                        className={`${styles.ListNavBtn} ${listType === 'extended' ? styles.Active : ''}`}
+                    >
+                        Extended
+                    </button>
+                    <button
+                        onClick={() => navigate('/challenges/legacy')}
+                        className={`${styles.ListNavBtn} ${listType === 'legacy' ? styles.Active : ''}`}
+                    >
+                        Legacy
+                    </button>
+                </div>
+
                 <div className={styles.Stats}>
                     <span className={styles.StatItem}>
-                        Total Levels: <strong>{levels.length}</strong>
+                        {getListTitle()}
                     </span>
                     <span className={styles.StatItem}>
-                        Page {currentPage} of {totalPages}
+                        Levels: <strong>{levels.length}</strong>
                     </span>
                 </div>
                 {isAdmin && (
                     <div className={styles.AdminActions}>
-                        <button 
+                        <button
                             onClick={handleAddLevel}
                             className={styles.AddLevelBtn}
                         >
@@ -186,8 +189,8 @@ export default function ChallengesRoute() {
             </div>
 
             <div className={styles.LevelsGrid}>
-                {currentLevels.length > 0 ? (
-                    currentLevels.map((level) => (
+                {levels.length > 0 ? (
+                    levels.map((level) => (
                         <div key={level.id} className={styles.LevelItem}>
                             <Link to={`/level/${level.placement}`} className={styles.LevelLink}>
                                 <LevelDisplay
@@ -233,38 +236,6 @@ export default function ChallengesRoute() {
                     </div>
                 )}
             </div>
-
-            {totalPages > 1 && (
-                <div className={styles.Pagination}>
-                    <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className={`${styles.PaginationBtn} ${styles.PrevNext}`}
-                    >
-                        Previous
-                    </button>
-                    
-                    {getPaginationRange().map((pageNumber) => (
-                        <button
-                            key={pageNumber}
-                            onClick={() => handlePageChange(pageNumber)}
-                            className={`${styles.PaginationBtn} ${
-                                currentPage === pageNumber ? styles.Active : ''
-                            }`}
-                        >
-                            {pageNumber}
-                        </button>
-                    ))}
-                    
-                    <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className={`${styles.PaginationBtn} ${styles.PrevNext}`}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
 
             {deleteConfirm && (
                 <div className={styles.DeleteModal}>
