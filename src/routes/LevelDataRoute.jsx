@@ -304,6 +304,19 @@ export default function LevelDataRoute() {
                         <span className={styles.metaLabel}>Points</span>
                         <span className={styles.metaValue}>{level.points}</span>
                     </div>
+                    <div className={styles.metadataItem}>
+                        <span className={styles.metaLabel}>Enjoyment</span>
+                        <span className={styles.metaValue}>
+                            {level.enjoyment_ratings && level.enjoyment_ratings.length > 0 ? (
+                                <>
+                                    {(level.enjoyment_ratings.reduce((sum, rating) => sum + rating, 0) / level.enjoyment_ratings.length).toFixed(2)}/10
+                                    <span className={styles.ratingCount}> ({level.enjoyment_ratings.length} {level.enjoyment_ratings.length === 1 ? 'rating' : 'ratings'})</span>
+                                </>
+                            ) : (
+                                <>0</>
+                            )}
+                        </span>
+                    </div>
                     {level.tags?.difficulty && (
                         <div className={styles.metadataItem}>
                             <span className={styles.metaLabel}>Difficulty</span>
@@ -337,21 +350,6 @@ export default function LevelDataRoute() {
                             </button>
                         </span>
                     </div>
-                </div>
-
-                {/* Enjoyment Rating Section */}
-                <div className={styles.enjoymentSection}>
-                    <span className={styles.metaLabel}>Enjoyment</span>
-                    <span className={styles.enjoymentValue}>
-                        {level.enjoyment_ratings && level.enjoyment_ratings.length > 0 ? (
-                            <>
-                                {(level.enjoyment_ratings.reduce((sum, rating) => sum + rating, 0) / level.enjoyment_ratings.length).toFixed(2)}/10
-                                <span className={styles.ratingCount}> ({level.enjoyment_ratings.length} {level.enjoyment_ratings.length === 1 ? 'rating' : 'ratings'})</span>
-                            </>
-                        ) : (
-                            <>0 (0)</>
-                        )}
-                    </span>
                 </div>
 
                 {/* Extra Tags as inline badges */}

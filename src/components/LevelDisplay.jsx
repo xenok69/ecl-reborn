@@ -19,7 +19,7 @@ export default function LevelDisplay({
   // Calculate enjoyment rating display
   const getEnjoymentDisplay = () => {
     if (!enjoymentRatings || enjoymentRatings.length === 0) {
-      return "0 (0)";
+      return "0";
     }
     const average = enjoymentRatings.reduce((sum, rating) => sum + rating, 0) / enjoymentRatings.length;
     return `${average.toFixed(1)} (${enjoymentRatings.length})`;
@@ -70,23 +70,6 @@ export default function LevelDisplay({
             <div className={styles.InfoItem}>
               <span className={styles.InfoLabel}>Enjoyment:</span>
               <span className={styles.InfoValue}>{getEnjoymentDisplay()}</span>
-            </div>
-            <div className={styles.InfoItem}>
-              <span className={styles.InfoLabel}>ID:</span>
-              <span className={styles.InfoValue}>
-                {id}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(id);
-                  }}
-                  className={styles.CopyBtn}
-                  title="Copy ID to clipboard"
-                >
-                  📋
-                </button>
-              </span>
             </div>
           </div>
         </div>
