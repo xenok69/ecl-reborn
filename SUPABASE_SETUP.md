@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS level_submissions (
     submitted_by_user_id TEXT NOT NULL,
     submitted_by_username TEXT NOT NULL,
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved')),
 
     -- Level submission fields (used when submission_type = 'level')
     level_id TEXT,
@@ -73,6 +73,19 @@ CREATE POLICY "Anyone can delete submissions"
     ON level_submissions
     FOR DELETE
     USING (true);
+```
+
+## Updating Existing Tables
+
+If you already created the table with the old schema that included "declined" status, run this SQL to update it:
+
+```sql
+-- Remove the old constraint
+ALTER TABLE level_submissions DROP CONSTRAINT IF EXISTS level_submissions_status_check;
+
+-- Add the new constraint without 'declined'
+ALTER TABLE level_submissions ADD CONSTRAINT level_submissions_status_check
+    CHECK (status IN ('pending', 'approved'));
 ```
 
 ## Fixing RLS Policy Errors

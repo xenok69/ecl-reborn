@@ -9,8 +9,7 @@ function SubmissionCard({ submission }) {
     const isLevelSubmission = submission.submission_type === 'level'
     const statusColors = {
         pending: { bg: '#fef3c7', text: '#92400e', label: 'Pending Review' },
-        approved: { bg: '#d1fae5', text: '#065f46', label: 'Approved' },
-        declined: { bg: '#fee2e2', text: '#991b1b', label: 'Declined' }
+        approved: { bg: '#d1fae5', text: '#065f46', label: 'Approved' }
     }
     const statusStyle = statusColors[submission.status] || statusColors.pending
 
@@ -194,8 +193,7 @@ export default function MySubmissionsRoute() {
     const counts = {
         all: submissions.length,
         pending: submissions.filter(s => s.status === 'pending').length,
-        approved: submissions.filter(s => s.status === 'approved').length,
-        declined: submissions.filter(s => s.status === 'declined').length
+        approved: submissions.filter(s => s.status === 'approved').length
     }
 
     return (
@@ -213,7 +211,9 @@ export default function MySubmissionsRoute() {
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'all' ? 1 : 0.6,
-                        backgroundColor: filter === 'all' ? '#3b82f6' : '#6b7280'
+                        backgroundColor: filter === 'all' ? '#3b82f6' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     All ({counts.all})
@@ -223,7 +223,9 @@ export default function MySubmissionsRoute() {
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'pending' ? 1 : 0.6,
-                        backgroundColor: filter === 'pending' ? '#f59e0b' : '#6b7280'
+                        backgroundColor: filter === 'pending' ? '#f59e0b' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     Pending ({counts.pending})
@@ -233,20 +235,12 @@ export default function MySubmissionsRoute() {
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'approved' ? 1 : 0.6,
-                        backgroundColor: filter === 'approved' ? '#10b981' : '#6b7280'
+                        backgroundColor: filter === 'approved' ? '#10b981' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     Approved ({counts.approved})
-                </button>
-                <button
-                    onClick={() => setFilter('declined')}
-                    className={adminStyles.SubmitBtn}
-                    style={{
-                        opacity: filter === 'declined' ? 1 : 0.6,
-                        backgroundColor: filter === 'declined' ? '#ef4444' : '#6b7280'
-                    }}
-                >
-                    Declined ({counts.declined})
                 </button>
             </div>
 

@@ -299,13 +299,15 @@ export default function AdminReviewRoute() {
                 </div>
             )}
 
-            <div className={styles.FilterSection} style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div className={styles.FilterSection} style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                     onClick={() => setFilter('pending')}
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'pending' ? 1 : 0.5,
-                        backgroundColor: filter === 'pending' ? '#3b82f6' : '#6b7280'
+                        backgroundColor: filter === 'pending' ? '#3b82f6' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     All Pending ({submissions.length})
@@ -315,7 +317,9 @@ export default function AdminReviewRoute() {
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'level' ? 1 : 0.5,
-                        backgroundColor: filter === 'level' ? '#3b82f6' : '#6b7280'
+                        backgroundColor: filter === 'level' ? '#3b82f6' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     Levels Only
@@ -325,7 +329,9 @@ export default function AdminReviewRoute() {
                     className={adminStyles.SubmitBtn}
                     style={{
                         opacity: filter === 'completion' ? 1 : 0.5,
-                        backgroundColor: filter === 'completion' ? '#3b82f6' : '#6b7280'
+                        backgroundColor: filter === 'completion' ? '#3b82f6' : '#6b7280',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem'
                     }}
                 >
                     Completions Only
