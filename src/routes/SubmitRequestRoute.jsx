@@ -136,6 +136,8 @@ export const submitRequestAction = async ({ request }) => {
             errorMessage = 'Database table not set up yet. The level_submissions table needs to be created in Supabase. Please contact an admin to run the setup SQL.'
         } else if (error.message === 'Supabase not configured') {
             errorMessage = 'Database connection not configured. Please contact an admin.'
+        } else if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+            errorMessage = 'Database security policy blocking submission. The RLS policies need to be updated for Discord OAuth. Please contact an admin to fix the policies (see SUPABASE_SETUP.md).'
         }
 
         // Add hint if available

@@ -331,6 +331,31 @@
     box-shadow: 0 4px 16px var(--color-blue-30);
 }
 
+.SmallActionBtn {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-dark) 100%);
+    border: 1px solid var(--color-blue-light);
+    border-radius: 10px;
+    color: var(--color-white);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px var(--color-blue-30);
+}
+
+.SmallActionBtn:hover {
+    background: linear-gradient(135deg, var(--color-blue-light) 0%, var(--color-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--color-blue-50);
+    border-color: var(--color-blue-light);
+}
+
+.SmallActionBtn:active {
+    transform: translateY(0);
+}
+
 .AddLevelBtn:hover {
     background: linear-gradient(135deg, var(--color-blue-light) 0%, var(--color-blue) 100%);
     transform: translateY(-2px);

@@ -181,28 +181,20 @@ export default function ChallengesRoute() {
 
                 {/* Action buttons for authenticated users and admins */}
                 {(isAuthenticated || isAdmin) && (
-                    <div className={styles.AdminActions}>
+                    <div className={styles.AdminActions} style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
                         {isAuthenticated && (
                             <>
                                 <button
                                     onClick={() => navigate('/submit-request')}
-                                    className={styles.AddLevelBtn}
-                                    style={{
-                                        backgroundColor: '#3b82f6',
-                                        padding: '0.5rem 1rem',
-                                        fontSize: '0.875rem'
-                                    }}
+                                    className={styles.SmallActionBtn}
+                                    style={{ backgroundColor: '#3b82f6' }}
                                 >
                                     Submit Level/Completion
                                 </button>
                                 <button
                                     onClick={() => navigate('/my-submissions')}
-                                    className={styles.AddLevelBtn}
-                                    style={{
-                                        backgroundColor: '#8b5cf6',
-                                        padding: '0.5rem 1rem',
-                                        fontSize: '0.875rem'
-                                    }}
+                                    className={styles.SmallActionBtn}
+                                    style={{ backgroundColor: '#8b5cf6' }}
                                 >
                                     My Submissions
                                 </button>
@@ -212,22 +204,14 @@ export default function ChallengesRoute() {
                             <>
                                 <button
                                     onClick={() => navigate('/admin/review')}
-                                    className={styles.AddLevelBtn}
-                                    style={{
-                                        backgroundColor: '#10b981',
-                                        padding: '0.5rem 1rem',
-                                        fontSize: '0.875rem'
-                                    }}
+                                    className={styles.SmallActionBtn}
+                                    style={{ backgroundColor: '#10b981' }}
                                 >
                                     Review Submissions
                                 </button>
                                 <button
                                     onClick={handleAddLevel}
                                     className={styles.AddLevelBtn}
-                                    style={{
-                                        padding: '0.5rem 1rem',
-                                        fontSize: '0.875rem'
-                                    }}
                                 >
                                     Add Level
                                 </button>
