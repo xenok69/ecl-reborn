@@ -123,9 +123,34 @@ export const submitRequestAction = async ({ request }) => {
 
     } catch (error) {
         console.error('Error submitting request:', error)
+
+        // Extract helpful error information
+        let errorMessage = 'Failed to submit request. '
+
+        if (error.message) {
+            errorMessage += error.message
+        }
+
+        // Check for specific error types
+        if (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+            errorMessage = 'Database table not set up yet. The level_submissions table needs to be created in Supabase. Please contact an admin to run the setup SQL.'
+        } else if (error.message === 'Supabase not configured') {
+            errorMessage = 'Database connection not configured. Please contact an admin.'
+        }
+
+        // Add hint if available
+        if (error.hint) {
+            errorMessage += ` Hint: ${error.hint}`
+        }
+
+        // Add details if available
+        if (error.details) {
+            errorMessage += ` Details: ${error.details}`
+        }
+
         return {
             success: false,
-            message: 'Failed to submit request. Please try again.'
+            message: errorMessage
         }
     }
 }

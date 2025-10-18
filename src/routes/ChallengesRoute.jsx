@@ -187,16 +187,24 @@ export default function ChallengesRoute() {
                                 <button
                                     onClick={() => navigate('/submit-request')}
                                     className={styles.AddLevelBtn}
-                                    style={{ backgroundColor: '#3b82f6' }}
+                                    style={{
+                                        backgroundColor: '#3b82f6',
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem'
+                                    }}
                                 >
-                                    📤 Submit Level/Completion
+                                    Submit Level/Completion
                                 </button>
                                 <button
                                     onClick={() => navigate('/my-submissions')}
                                     className={styles.AddLevelBtn}
-                                    style={{ backgroundColor: '#8b5cf6' }}
+                                    style={{
+                                        backgroundColor: '#8b5cf6',
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem'
+                                    }}
                                 >
-                                    📋 My Submissions
+                                    My Submissions
                                 </button>
                             </>
                         )}
@@ -205,13 +213,21 @@ export default function ChallengesRoute() {
                                 <button
                                     onClick={() => navigate('/admin/review')}
                                     className={styles.AddLevelBtn}
-                                    style={{ backgroundColor: '#10b981' }}
+                                    style={{
+                                        backgroundColor: '#10b981',
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem'
+                                    }}
                                 >
-                                    ✅ Review Submissions
+                                    Review Submissions
                                 </button>
                                 <button
                                     onClick={handleAddLevel}
                                     className={styles.AddLevelBtn}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        fontSize: '0.875rem'
+                                    }}
                                 >
                                     Add Level
                                 </button>
