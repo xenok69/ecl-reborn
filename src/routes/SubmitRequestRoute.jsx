@@ -40,6 +40,7 @@ export const submitRequestAction = async ({ request }) => {
             const gamemode = formData.get('gamemode')
             const decorationStyle = formData.get('decorationStyle')
             const selectedExtraTags = formData.getAll('selectedExtraTags')
+            const enjoymentRating = formData.get('enjoymentRating')
 
             // Validation
             if (!levelName) errors.levelName = 'Level name is required'
@@ -50,6 +51,14 @@ export const submitRequestAction = async ({ request }) => {
             if (!difficulty) errors.difficulty = 'Difficulty is required'
             if (!gamemode) errors.gamemode = 'Gamemode is required'
             if (!decorationStyle) errors.decorationStyle = 'Decoration style is required'
+            if (!enjoymentRating || enjoymentRating === '') {
+                errors.enjoymentRating = 'Enjoyment rating is required'
+            } else {
+                const rating = parseFloat(enjoymentRating)
+                if (isNaN(rating) || rating < 0 || rating > 10) {
+                    errors.enjoymentRating = 'Enjoyment rating must be between 0 and 10'
+                }
+            }
 
             // Extract YouTube ID
             const extractYoutubeId = (input) => {
@@ -85,7 +94,8 @@ export const submitRequestAction = async ({ request }) => {
                 gamemode,
                 decoration_style: decorationStyle,
                 extra_tags: selectedExtraTags,
-                suggested_placement: suggestedPlacement ? parseInt(suggestedPlacement) : null
+                suggested_placement: suggestedPlacement ? parseInt(suggestedPlacement) : null,
+                enjoyment_rating: parseFloat(enjoymentRating)
             }
 
         } else if (submissionType === 'completion') {
@@ -94,9 +104,18 @@ export const submitRequestAction = async ({ request }) => {
             const youtubeLink = formData.get('youtubeLink')?.trim()
             const completedAt = formData.get('completedAt')
             const isVerifier = formData.get('isVerifier') === 'true'
+            const enjoymentRating = formData.get('enjoymentRating')
 
             // Validation
             if (!targetLevelId) errors.targetLevel = 'Please select a level'
+            if (!enjoymentRating || enjoymentRating === '') {
+                errors.enjoymentRating = 'Enjoyment rating is required'
+            } else {
+                const rating = parseFloat(enjoymentRating)
+                if (isNaN(rating) || rating < 0 || rating > 10) {
+                    errors.enjoymentRating = 'Enjoyment rating must be between 0 and 10'
+                }
+            }
 
             if (Object.keys(errors).length > 0) {
                 return { success: false, errors }
@@ -107,7 +126,8 @@ export const submitRequestAction = async ({ request }) => {
                 target_level_id: targetLevelId,
                 youtube_link: youtubeLink || null,
                 completed_at: completedAt || new Date().toISOString(),
-                is_verifier: isVerifier
+                is_verifier: isVerifier,
+                enjoyment_rating: parseFloat(enjoymentRating)
             }
         }
 
@@ -420,6 +440,26 @@ export default function SubmitRequestRoute() {
                                     <input key={tag} type="hidden" name="selectedExtraTags" value={tag} />
                                 ))}
                             </div>
+
+                            <div className={styles.FormGroup}>
+                                <label className={styles.Label}>
+                                    Enjoyment Rating *
+                                    <input
+                                        type="number"
+                                        name="enjoymentRating"
+                                        className={`${styles.Input} ${actionData?.errors?.enjoymentRating ? styles.Error : ''}`}
+                                        placeholder="Rate 0-10 (decimals allowed)"
+                                        min="0"
+                                        max="10"
+                                        step="0.01"
+                                        required
+                                    />
+                                    <div className={styles.PlacementHint}>
+                                        How much did you enjoy this level? (0 = terrible, 10 = amazing)
+                                    </div>
+                                    {actionData?.errors?.enjoymentRating && <span className={styles.ErrorText}>{actionData.errors.enjoymentRating}</span>}
+                                </label>
+                            </div>
                         </fieldset>
                     </>
                 ) : (
@@ -482,6 +522,26 @@ export default function SubmitRequestRoute() {
                                         className={styles.Checkbox}
                                     />
                                     <span className={styles.CheckboxText}>This is a verification (first completion)</span>
+                                </label>
+                            </div>
+
+                            <div className={styles.FormGroup}>
+                                <label className={styles.Label}>
+                                    Enjoyment Rating *
+                                    <input
+                                        type="number"
+                                        name="enjoymentRating"
+                                        className={`${styles.Input} ${actionData?.errors?.enjoymentRating ? styles.Error : ''}`}
+                                        placeholder="Rate 0-10 (decimals allowed)"
+                                        min="0"
+                                        max="10"
+                                        step="0.01"
+                                        required
+                                    />
+                                    <div className={styles.PlacementHint}>
+                                        How much did you enjoy this level? (0 = terrible, 10 = amazing)
+                                    </div>
+                                    {actionData?.errors?.enjoymentRating && <span className={styles.ErrorText}>{actionData.errors.enjoymentRating}</span>}
                                 </label>
                             </div>
                         </fieldset>

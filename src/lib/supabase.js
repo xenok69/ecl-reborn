@@ -157,10 +157,16 @@ export const supabaseOperations = {
         }
       }
 
+      // Ensure enjoyment_ratings is initialized as empty array if not provided
+      const levelDataWithDefaults = {
+        ...levelData,
+        enjoyment_ratings: levelData.enjoyment_ratings || []
+      }
+
       // Then insert the new level
       const { data, error } = await supabase
         .from('levels')
-        .insert(levelData)
+        .insert(levelDataWithDefaults)
         .select()
 
       if (error) {
@@ -290,19 +296,23 @@ export const supabaseOperations = {
     }
 
     try {
-      // First get the level's placement to know which gap to fill
+      console.log(`🗑️  Starting deletion process for level ID: ${levelId}`)
+
+      // First get the level's details to know which gap to fill
       const { data: levelToDelete, error: fetchError } = await supabase
         .from('levels')
-        .select('placement')
+        .select('placement, levelName')
         .eq('id', levelId)
         .single()
 
       if (fetchError) {
-        console.error('Error finding level to delete:', fetchError)
+        console.error('❌ Error finding level to delete:', fetchError)
         throw fetchError
       }
 
       const deletedPlacement = levelToDelete.placement
+      const deletedName = levelToDelete.levelName
+      console.log(`📍 Deleting level "${deletedName}" at placement ${deletedPlacement}`)
 
       // Delete the level
       const { error: deleteError } = await supabase
@@ -311,45 +321,58 @@ export const supabaseOperations = {
         .eq('id', levelId)
 
       if (deleteError) {
-        console.error('Error deleting level:', deleteError)
+        console.error('❌ Error deleting level:', deleteError)
         throw deleteError
       }
 
+      console.log(`✅ Level deleted from database`)
+
       // Get levels that need to be shifted up to fill the gap
+      // IMPORTANT: Order by placement to ensure sequential processing
       const { data: levelsToShift, error: fetchShiftError } = await supabase
         .from('levels')
-        .select('id, placement')
+        .select('id, placement, levelName')
         .gt('placement', deletedPlacement)
+        .order('placement', { ascending: true })
 
       if (fetchShiftError) {
-        console.error('Error fetching levels to shift after deletion:', fetchShiftError)
+        console.error('❌ Error fetching levels to shift after deletion:', fetchShiftError)
         throw fetchShiftError
       }
 
       // Shift levels up to fill the gap
       if (levelsToShift && levelsToShift.length > 0) {
-        console.log(`🔄 Filling placement gap at ${deletedPlacement} - shifting ${levelsToShift.length} levels up by 1`)
+        console.log(`🔄 Filling placement gap at ${deletedPlacement}`)
+        console.log(`📊 Shifting ${levelsToShift.length} level(s) up by 1 position`)
+
         for (const level of levelsToShift) {
+          const oldPlacement = level.placement
+          const newPlacement = level.placement - 1
+
+          console.log(`  ↑ "${level.levelName}": ${oldPlacement} → ${newPlacement}`)
+
           const { error: shiftError } = await supabase
             .from('levels')
-            .update({ placement: level.placement - 1 })
+            .update({ placement: newPlacement })
             .eq('id', level.id)
 
           if (shiftError) {
-            console.error('Error shifting level up after deletion:', level.id, shiftError)
+            console.error(`❌ Error shifting level "${level.levelName}" (${level.id}):`, shiftError)
             throw shiftError
           }
         }
+
+        console.log(`✅ All ${levelsToShift.length} level(s) shifted successfully`)
+      } else {
+        console.log(`ℹ️  No levels to shift (deleted level was at the end)`)
       }
 
-      console.log('✅ Level deleted successfully with placement gap filled:', levelId)
-
-      // Auto-repair placements after operation to ensure consistency
-      await autoRepairPlacements()
+      console.log(`✅ Level "${deletedName}" deleted successfully - placement sequence maintained`)
+      console.log(`ℹ️  Note: Auto-repair skipped - manual shifting handles gap filling`)
 
       return true
     } catch (error) {
-      console.error('Supabase delete error:', error)
+      console.error('💥 Supabase delete error:', error)
       throw error
     }
   },
@@ -811,6 +834,145 @@ export const supabaseOperations = {
     }
   },
 
+  /**
+   * Calculate Levenshtein distance between two strings for fuzzy matching
+   * @param {string} str1 - First string
+   * @param {string} str2 - Second string
+   * @returns {number} - Distance between strings
+   */
+  levenshteinDistance(str1, str2) {
+    const s1 = str1.toLowerCase()
+    const s2 = str2.toLowerCase()
+    const matrix = []
+
+    for (let i = 0; i <= s2.length; i++) {
+      matrix[i] = [i]
+    }
+
+    for (let j = 0; j <= s1.length; j++) {
+      matrix[0][j] = j
+    }
+
+    for (let i = 1; i <= s2.length; i++) {
+      for (let j = 1; j <= s1.length; j++) {
+        if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1]
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          )
+        }
+      }
+    }
+
+    return matrix[s2.length][s1.length]
+  },
+
+  /**
+   * Find user by fuzzy username matching in user_activity table
+   * @param {string} verifierName - The verifier name to search for
+   * @returns {string|null} - User ID if found, null otherwise
+   */
+  async findUserByFuzzyUsername(verifierName) {
+    if (!supabase || !verifierName) {
+      return null
+    }
+
+    try {
+      // Fetch all users
+      const { data: users, error } = await supabase
+        .from('user_activity')
+        .select('user_id, username')
+
+      if (error) {
+        console.error('Error fetching users for fuzzy match:', error)
+        return null
+      }
+
+      if (!users || users.length === 0) {
+        return null
+      }
+
+      // Calculate similarity for each user
+      const matches = users.map(user => {
+        const distance = this.levenshteinDistance(verifierName, user.username || '')
+        const maxLength = Math.max(verifierName.length, (user.username || '').length)
+        const similarity = maxLength === 0 ? 0 : ((maxLength - distance) / maxLength) * 100
+
+        return {
+          userId: user.user_id,
+          username: user.username,
+          similarity
+        }
+      })
+
+      // Sort by similarity (highest first)
+      matches.sort((a, b) => b.similarity - a.similarity)
+
+      // Return best match if similarity > 80%
+      const bestMatch = matches[0]
+      if (bestMatch.similarity >= 80) {
+        console.log(`✅ Found fuzzy match for verifier "${verifierName}": ${bestMatch.username} (${bestMatch.similarity.toFixed(1)}% similarity)`)
+        return bestMatch.userId
+      }
+
+      console.log(`⚠️ No good fuzzy match found for verifier "${verifierName}" (best: ${bestMatch.username} at ${bestMatch.similarity.toFixed(1)}%)`)
+      return null
+    } catch (error) {
+      console.error('Error in fuzzy username matching:', error)
+      return null
+    }
+  },
+
+  /**
+   * Add an enjoyment rating to a level's enjoyment_ratings array
+   * @param {string} levelId - The level ID
+   * @param {number} rating - The enjoyment rating (0-10)
+   * @returns {object} - Updated level data
+   */
+  async addEnjoymentRating(levelId, rating) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      // First get current enjoyment_ratings
+      const { data: level, error: fetchError } = await supabase
+        .from('levels')
+        .select('enjoyment_ratings')
+        .eq('id', levelId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching level for enjoyment rating:', fetchError)
+        throw fetchError
+      }
+
+      const currentRatings = level?.enjoyment_ratings || []
+      const updatedRatings = [...currentRatings, rating]
+
+      // Update the level with new ratings array
+      const { data, error } = await supabase
+        .from('levels')
+        .update({ enjoyment_ratings: updatedRatings })
+        .eq('id', levelId)
+        .select()
+
+      if (error) {
+        console.error('Error adding enjoyment rating:', error)
+        throw error
+      }
+
+      console.log(`✅ Added enjoyment rating ${rating} to level ${levelId}`)
+      return data
+    } catch (error) {
+      console.error('Supabase add enjoyment rating error:', error)
+      throw error
+    }
+  },
+
   async approveSubmission(submissionId) {
     if (!supabase) {
       throw new Error('Supabase not configured')
@@ -850,6 +1012,36 @@ export const supabaseOperations = {
         }
 
         await this.addLevel(levelData)
+
+        // Auto-add verifier completion if verifier found in user_activity
+        if (submission.verifier) {
+          const verifierUserId = await this.findUserByFuzzyUsername(submission.verifier)
+          if (verifierUserId) {
+            try {
+              await this.addCompletedLevel(
+                verifierUserId,
+                submission.level_id,
+                submission.youtube_video_id ? `https://www.youtube.com/watch?v=${submission.youtube_video_id}` : null,
+                null, // Use current timestamp
+                true  // Mark as verifier
+              )
+              console.log(`✅ Auto-added verifier completion for ${submission.verifier}`)
+            } catch (error) {
+              console.error('⚠️ Failed to auto-add verifier completion:', error)
+              // Don't throw - this is optional
+            }
+          }
+        }
+
+        // Add enjoyment rating if provided
+        if (submission.enjoyment_rating != null) {
+          try {
+            await this.addEnjoymentRating(submission.level_id, submission.enjoyment_rating)
+          } catch (error) {
+            console.error('⚠️ Failed to add enjoyment rating to level:', error)
+            // Don't throw - this is optional
+          }
+        }
       } else if (submission.submission_type === 'completion') {
         // Add to user's completed levels
         await this.addCompletedLevel(
@@ -859,6 +1051,16 @@ export const supabaseOperations = {
           submission.completed_at,
           submission.is_verifier
         )
+
+        // Add enjoyment rating if provided
+        if (submission.enjoyment_rating != null) {
+          try {
+            await this.addEnjoymentRating(submission.target_level_id, submission.enjoyment_rating)
+          } catch (error) {
+            console.error('⚠️ Failed to add enjoyment rating to level:', error)
+            // Don't throw - this is optional
+          }
+        }
       }
 
       // Update submission status to approved

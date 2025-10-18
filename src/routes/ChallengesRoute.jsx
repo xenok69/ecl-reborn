@@ -235,6 +235,7 @@ export default function ChallengesRoute() {
                                     points={level.points}
                                     youtubeVideoId={level.youtubeVideoId}
                                     tags={level.tags}
+                                    enjoymentRatings={level.enjoyment_ratings}
                                     showActions={isAdmin}
                                     onEdit={handleEditLevel}
                                     onRemove={handleRemoveLevel}
