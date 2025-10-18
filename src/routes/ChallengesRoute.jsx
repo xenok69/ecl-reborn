@@ -3,6 +3,7 @@ import { useParams, useLoaderData, useNavigation, useNavigate, Link } from 'reac
 import LevelDisplay from '../components/LevelDisplay'
 import { getLevels, getLeaderboard } from '../lib/levelUtils'
 import { useAdmin } from '../hooks/useAdmin'
+import { useAuth } from '../hooks/useAuth'
 import { deleteLevelFromJson } from './AdminSubmitRoute'
 import styles from './ChallengesRoute.module.css'
 
@@ -72,6 +73,7 @@ export default function ChallengesRoute() {
     const navigation = useNavigation()
     const navigate = useNavigate()
     const { isAdmin } = useAdmin()
+    const { isAuthenticated } = useAuth()
 
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const [deleteTimer, setDeleteTimer] = useState(0)
@@ -176,14 +178,45 @@ export default function ChallengesRoute() {
                         Levels: <strong>{levels.length}</strong>
                     </span>
                 </div>
-                {isAdmin && (
+
+                {/* Action buttons for authenticated users and admins */}
+                {(isAuthenticated || isAdmin) && (
                     <div className={styles.AdminActions}>
-                        <button
-                            onClick={handleAddLevel}
-                            className={styles.AddLevelBtn}
-                        >
-                            Add Level
-                        </button>
+                        {isAuthenticated && (
+                            <>
+                                <button
+                                    onClick={() => navigate('/submit-request')}
+                                    className={styles.AddLevelBtn}
+                                    style={{ backgroundColor: '#3b82f6' }}
+                                >
+                                    📤 Submit Level/Completion
+                                </button>
+                                <button
+                                    onClick={() => navigate('/my-submissions')}
+                                    className={styles.AddLevelBtn}
+                                    style={{ backgroundColor: '#8b5cf6' }}
+                                >
+                                    📋 My Submissions
+                                </button>
+                            </>
+                        )}
+                        {isAdmin && (
+                            <>
+                                <button
+                                    onClick={() => navigate('/admin/review')}
+                                    className={styles.AddLevelBtn}
+                                    style={{ backgroundColor: '#10b981' }}
+                                >
+                                    ✅ Review Submissions
+                                </button>
+                                <button
+                                    onClick={handleAddLevel}
+                                    className={styles.AddLevelBtn}
+                                >
+                                    Add Level
+                                </button>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
