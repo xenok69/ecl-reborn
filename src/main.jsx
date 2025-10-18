@@ -17,6 +17,9 @@ import SearchRoute from "./routes/SearchRoute.jsx";
 import AboutRoute from "./routes/AboutRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
+import SubmitRequestRoute, { submitRequestAction } from "./routes/SubmitRequestRoute.jsx";
+import AdminReviewRoute from "./routes/AdminReviewRoute.jsx";
+import MySubmissionsRoute from "./routes/MySubmissionsRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -63,11 +66,7 @@ const router = createBrowserRouter([
       },
       {
         path: "leaderboard/",
-        element: (
-          <ProtectedRoute>
-            <LeaderboardRoute />
-          </ProtectedRoute>
-        ),
+        element: <LeaderboardRoute />,
         loader: leaderboardLoader,
       },
       {
@@ -109,6 +108,31 @@ const router = createBrowserRouter([
           </AdminProtectedRoute>
         ),
         action: adminCompletionsAction,
+      },
+      {
+        path: "admin/review",
+        element: (
+          <AdminProtectedRoute>
+            <AdminReviewRoute />
+          </AdminProtectedRoute>
+        ),
+      },
+      {
+        path: "submit-request",
+        element: (
+          <ProtectedRoute>
+            <SubmitRequestRoute />
+          </ProtectedRoute>
+        ),
+        action: submitRequestAction,
+      },
+      {
+        path: "my-submissions",
+        element: (
+          <ProtectedRoute>
+            <MySubmissionsRoute />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

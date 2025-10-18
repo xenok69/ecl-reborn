@@ -743,5 +743,191 @@ export const supabaseOperations = {
       console.error('❌ Table test error:', error)
       return false
     }
+  },
+
+  // Level Submissions Operations
+  async getSubmissions(filters = {}) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch submissions')
+      return []
+    }
+
+    try {
+      let query = supabase
+        .from('level_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: false })
+
+      // Apply filters
+      if (filters.status) {
+        query = query.eq('status', filters.status)
+      }
+      if (filters.userId) {
+        query = query.eq('submitted_by_user_id', filters.userId)
+      }
+      if (filters.submissionType) {
+        query = query.eq('submission_type', filters.submissionType)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching submissions:', error)
+        throw error
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Supabase get submissions error:', error)
+      throw error
+    }
+  },
+
+  async addSubmission(submissionData) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('level_submissions')
+        .insert({
+          ...submissionData,
+          submitted_at: new Date().toISOString(),
+          status: 'pending'
+        })
+        .select()
+
+      if (error) {
+        console.error('Error adding submission:', error)
+        throw error
+      }
+
+      console.log('✅ Submission added successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase add submission error:', error)
+      throw error
+    }
+  },
+
+  async approveSubmission(submissionId) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      // First get the submission details
+      const { data: submission, error: fetchError } = await supabase
+        .from('level_submissions')
+        .select('*')
+        .eq('id', submissionId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching submission to approve:', fetchError)
+        throw fetchError
+      }
+
+      if (!submission) {
+        throw new Error('Submission not found')
+      }
+
+      // Handle based on submission type
+      if (submission.submission_type === 'level') {
+        // Add to main levels table
+        const levelData = {
+          id: submission.level_id,
+          placement: submission.suggested_placement || 1,
+          levelName: submission.level_name,
+          creator: submission.creator,
+          verifier: submission.verifier,
+          youtubeVideoId: submission.youtube_video_id,
+          difficulty: submission.difficulty,
+          gamemode: submission.gamemode,
+          decorationStyle: submission.decoration_style,
+          extraTags: submission.extra_tags || []
+        }
+
+        await this.addLevel(levelData)
+      } else if (submission.submission_type === 'completion') {
+        // Add to user's completed levels
+        await this.addCompletedLevel(
+          submission.submitted_by_user_id,
+          submission.target_level_id,
+          submission.youtube_link,
+          submission.completed_at,
+          submission.is_verifier
+        )
+      }
+
+      // Update submission status to approved
+      const { data, error: updateError } = await supabase
+        .from('level_submissions')
+        .update({ status: 'approved' })
+        .eq('id', submissionId)
+        .select()
+
+      if (updateError) {
+        console.error('Error updating submission status:', updateError)
+        throw updateError
+      }
+
+      console.log('✅ Submission approved successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase approve submission error:', error)
+      throw error
+    }
+  },
+
+  async declineSubmission(submissionId) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      // Delete the submission
+      const { error } = await supabase
+        .from('level_submissions')
+        .delete()
+        .eq('id', submissionId)
+
+      if (error) {
+        console.error('Error declining submission:', error)
+        throw error
+      }
+
+      console.log('✅ Submission declined and deleted:', submissionId)
+      return true
+    } catch (error) {
+      console.error('Supabase decline submission error:', error)
+      throw error
+    }
+  },
+
+  async getUserSubmissions(userId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch user submissions')
+      return []
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('level_submissions')
+        .select('*')
+        .eq('submitted_by_user_id', userId)
+        .order('submitted_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching user submissions:', error)
+        throw error
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Supabase get user submissions error:', error)
+      throw error
+    }
   }
 }
