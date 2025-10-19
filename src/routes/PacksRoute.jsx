@@ -52,6 +52,19 @@ export default function PacksRoute() {
         return userProgress.find(p => p.id === packId)
     }
 
+    // Admin handlers
+    const handleEditPack = (packId) => {
+        navigate(`/admin/packs/edit/${packId}`)
+    }
+
+    const handleDeletePack = (packId) => {
+        if (window.confirm('Are you sure you want to delete this pack? This action cannot be undone.')) {
+            // Implement delete logic - for now just navigate to admin page
+            console.log('Delete pack:', packId)
+            // You can implement the actual delete functionality later
+        }
+    }
+
     if (error) {
         return (
             <div className={styles.packsContainer}>
@@ -138,29 +151,54 @@ export default function PacksRoute() {
                                     const isSelected = selectedPack?.id === pack.id
 
                                     return (
-                                        <button
-                                            key={pack.id}
-                                            className={`${styles.packItem} ${isSelected ? styles.packItemActive : ''}`}
-                                            onClick={() => setSelectedPack(pack)}
-                                        >
-                                            <div className={styles.packItemContent}>
-                                                <span className={styles.packName}>{pack.name}</span>
-                                                <span className={styles.packLevelCount}>
-                                                    {pack.levelCount} level{pack.levelCount !== 1 ? 's' : ''}
-                                                </span>
-                                            </div>
-                                            {progress && (
-                                                <div className={styles.packItemProgress}>
-                                                    {progress.isCompleted ? (
-                                                        <span className={styles.completedBadge}>✓ Completed</span>
-                                                    ) : (
-                                                        <span className={styles.progressText}>
-                                                            {progress.completedLevels}/{progress.totalLevels}
-                                                        </span>
-                                                    )}
+                                        <div key={pack.id} className={styles.packItemWrapper}>
+                                            <button
+                                                className={`${styles.packItem} ${isSelected ? styles.packItemActive : ''}`}
+                                                onClick={() => setSelectedPack(pack)}
+                                            >
+                                                <div className={styles.packItemContent}>
+                                                    <span className={styles.packName}>{pack.name}</span>
+                                                    <span className={styles.packLevelCount}>
+                                                        {pack.levelCount} level{pack.levelCount !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                                {progress && (
+                                                    <div className={styles.packItemProgress}>
+                                                        {progress.isCompleted ? (
+                                                            <span className={styles.completedBadge}>✓ Completed</span>
+                                                        ) : (
+                                                            <span className={styles.progressText}>
+                                                                {progress.completedLevels}/{progress.totalLevels}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </button>
+                                            {isAdmin && (
+                                                <div className={styles.packItemAdminActions}>
+                                                    <button
+                                                        className={styles.packEditBtn}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleEditPack(pack.id)
+                                                        }}
+                                                        title="Edit pack"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        className={styles.packDeleteBtn}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleDeletePack(pack.id)
+                                                        }}
+                                                        title="Delete pack"
+                                                    >
+                                                        🗑️
+                                                    </button>
                                                 </div>
                                             )}
-                                        </button>
+                                        </div>
                                     )
                                 })}
                             </div>
