@@ -22,11 +22,15 @@ const AUTO_REPAIR_ENABLED = true
  * Automatically repair placement sequence after database operations
  * This ensures placements are always sequential (1, 2, 3, ..., N)
  * Only runs if AUTO_REPAIR_ENABLED is true
+ *
+ * @returns {Object|null} - Repair summary { repaired: number, gaps: number[], duplicates: number[] } or null if disabled
  */
 async function autoRepairPlacements() {
   if (!AUTO_REPAIR_ENABLED || !supabase) {
-    return
+    return null
   }
+
+  const startTime = Date.now()
 
   try {
     console.log('🔄 Auto-repairing placements...')
@@ -34,36 +38,135 @@ async function autoRepairPlacements() {
     // Fetch all levels ordered by current placement
     const { data: levels, error: fetchError } = await supabase
       .from('levels')
-      .select('id, placement')
+      .select('id, placement, levelName')
       .order('placement', { ascending: true })
 
     if (fetchError) {
-      console.error('⚠️ Auto-repair fetch failed:', fetchError)
-      return
+      console.error('❌ Auto-repair fetch failed:', fetchError)
+      console.error('Error details:', {
+        message: fetchError.message,
+        code: fetchError.code,
+        details: fetchError.details
+      })
+      return null
     }
 
-    // Check if repairs are needed and fix them
-    let repairsNeeded = false
+    if (!levels || levels.length === 0) {
+      console.log('ℹ️  No levels found - nothing to repair')
+      return { repaired: 0, gaps: [], duplicates: [] }
+    }
+
+    // Detect issues: gaps, duplicates, out-of-order placements
+    const issues = {
+      gaps: [],
+      duplicates: [],
+      outOfOrder: []
+    }
+
+    const seenPlacements = new Set()
+    let expectedPlacement = 1
+
     for (let i = 0; i < levels.length; i++) {
+      const level = levels[i]
+
+      // Check for gaps
+      if (level.placement !== expectedPlacement) {
+        issues.gaps.push({
+          expected: expectedPlacement,
+          actual: level.placement,
+          levelId: level.id,
+          levelName: level.levelName
+        })
+      }
+
+      // Check for duplicates
+      if (seenPlacements.has(level.placement)) {
+        issues.duplicates.push({
+          placement: level.placement,
+          levelId: level.id,
+          levelName: level.levelName
+        })
+      }
+      seenPlacements.add(level.placement)
+
+      expectedPlacement++
+    }
+
+    // Log detected issues
+    if (issues.gaps.length > 0 || issues.duplicates.length > 0) {
+      console.log('📊 Placement issues detected:')
+      if (issues.gaps.length > 0) {
+        console.log(`  ⚠️  Gaps: ${issues.gaps.length}`)
+        issues.gaps.forEach(gap => {
+          console.log(`    - "${gap.levelName}" (ID: ${gap.levelId}): placement ${gap.actual}, expected ${gap.expected}`)
+        })
+      }
+      if (issues.duplicates.length > 0) {
+        console.log(`  ⚠️  Duplicates: ${issues.duplicates.length}`)
+        issues.duplicates.forEach(dup => {
+          console.log(`    - "${dup.levelName}" (ID: ${dup.levelId}): duplicate placement ${dup.placement}`)
+        })
+      }
+    }
+
+    // Repair all placements to be sequential
+    let repairCount = 0
+    const repairedLevels = []
+
+    for (let i = 0; i < levels.length; i++) {
+      const level = levels[i]
       const correctPlacement = i + 1
-      if (levels[i].placement !== correctPlacement) {
-        repairsNeeded = true
+
+      if (level.placement !== correctPlacement) {
+        console.log(`  🔧 Repairing "${level.levelName}": ${level.placement} → ${correctPlacement}`)
+
         const { error: updateError } = await supabase
           .from('levels')
           .update({ placement: correctPlacement })
-          .eq('id', levels[i].id)
+          .eq('id', level.id)
 
         if (updateError) {
-          console.error('⚠️ Auto-repair update failed for level:', levels[i].id, updateError)
+          console.error(`❌ Failed to repair level "${level.levelName}" (ID: ${level.id}):`, updateError)
+          console.error('Error details:', {
+            message: updateError.message,
+            code: updateError.code,
+            details: updateError.details
+          })
+          // Continue with other repairs even if one fails
+        } else {
+          repairCount++
+          repairedLevels.push({
+            id: level.id,
+            name: level.levelName,
+            oldPlacement: level.placement,
+            newPlacement: correctPlacement
+          })
         }
       }
     }
 
-    if (repairsNeeded) {
-      console.log('✅ Auto-repair completed successfully')
+    const duration = Date.now() - startTime
+
+    if (repairCount > 0) {
+      console.log(`✅ Auto-repair completed: ${repairCount} level(s) fixed in ${duration}ms`)
+      repairedLevels.forEach(level => {
+        console.log(`   ✓ "${level.name}": ${level.oldPlacement} → ${level.newPlacement}`)
+      })
+    } else {
+      console.log(`✅ Auto-repair completed: No repairs needed (${duration}ms)`)
+    }
+
+    return {
+      repaired: repairCount,
+      gaps: issues.gaps.map(g => g.expected),
+      duplicates: issues.duplicates.map(d => d.placement),
+      duration,
+      repairedLevels
     }
   } catch (error) {
-    console.error('⚠️ Auto-repair failed:', error)
+    console.error('💥 Auto-repair failed with exception:', error)
+    console.error('Stack trace:', error.stack)
+    return null
   }
 }
 
@@ -368,7 +471,9 @@ export const supabaseOperations = {
       }
 
       console.log(`✅ Level "${deletedName}" deleted successfully - placement sequence maintained`)
-      console.log(`ℹ️  Note: Auto-repair skipped - manual shifting handles gap filling`)
+
+      // Auto-repair placements to catch any edge cases
+      await autoRepairPlacements()
 
       return true
     } catch (error) {
