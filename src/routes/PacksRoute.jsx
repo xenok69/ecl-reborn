@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLoaderData, Link, useNavigate } from 'react-router'
-import { getPacksByCategory, getUserPackProgress } from '../lib/packUtils'
+import { getPacksByCategory, getUserPackProgress, deletePack } from '../lib/packUtils'
 import { useAuth } from '../hooks/useAuth'
 import { useAdmin } from '../hooks/useAdmin'
 import styles from './PacksRoute.module.css'
@@ -34,14 +34,28 @@ export default function PacksRoute() {
 
     const [selectedPack, setSelectedPack] = useState(firstPack)
     const [userProgress, setUserProgress] = useState(null)
+    const [userCompletedLevels, setUserCompletedLevels] = useState([])
 
     // Load user progress when component mounts
-    useState(() => {
+    useEffect(() => {
         if (user?.id) {
+            // Get pack progress
             getUserPackProgress(user.id).then(progress => {
                 setUserProgress(progress)
             }).catch(err => {
                 console.error('Failed to load user pack progress:', err)
+            })
+
+            // Get user's completed levels
+            import('../lib/supabase').then(({ supabaseOperations }) => {
+                supabaseOperations.getUserActivity(user.id).then(userActivity => {
+                    if (userActivity?.completed_levels) {
+                        const completedLevelIds = userActivity.completed_levels.map(entry => String(entry.lvl))
+                        setUserCompletedLevels(completedLevelIds)
+                    }
+                }).catch(err => {
+                    console.error('Failed to load user completed levels:', err)
+                })
             })
         }
     }, [user?.id])
@@ -57,11 +71,24 @@ export default function PacksRoute() {
         navigate(`/admin/packs/edit/${packId}`)
     }
 
-    const handleDeletePack = (packId) => {
-        if (window.confirm('Are you sure you want to delete this pack? This action cannot be undone.')) {
-            // Implement delete logic - for now just navigate to admin page
-            console.log('Delete pack:', packId)
-            // You can implement the actual delete functionality later
+    const handleDeletePack = async (packId) => {
+        const pack = Object.values(packsByCategory)
+            .flat()
+            .find(p => p.id === packId)
+
+        const packName = pack?.name || 'this pack'
+
+        if (window.confirm(`Are you sure you want to delete "${packName}"? This action cannot be undone.`)) {
+            try {
+                await deletePack(packId)
+                console.log('✅ Pack deleted successfully:', packId)
+
+                // Reload the page to show updated pack list
+                window.location.reload()
+            } catch (error) {
+                console.error('❌ Failed to delete pack:', error)
+                alert(`Failed to delete pack: ${error.message}`)
+            }
         }
     }
 
@@ -244,12 +271,20 @@ export default function PacksRoute() {
                                                 ? `https://img.youtube.com/vi/${level.youtubeVideoId}/maxresdefault.jpg`
                                                 : null
 
+                                            // Check if user has completed this level
+                                            const isCompleted = userCompletedLevels.includes(String(level.id))
+
                                             return (
                                                 <Link
                                                     key={level.id}
                                                     to={`/level/${level.placement}`}
-                                                    className={styles.levelCard}
+                                                    className={`${styles.levelCard} ${isCompleted ? styles.levelCardCompleted : ''}`}
                                                 >
+                                                    {isCompleted && (
+                                                        <div className={styles.completionBadge}>
+                                                            ✓
+                                                        </div>
+                                                    )}
                                                     {thumbnailUrl && (
                                                         <div className={styles.levelThumbnail}>
                                                             <img
