@@ -1310,8 +1310,9 @@ export const supabaseOperations = {
         await this.addLevel(levelData)
 
         // Auto-add verifier completion if verifier found in user_activity
+        let verifierUserId = null
         if (submission.verifier) {
-          const verifierUserId = await this.findUserByFuzzyUsername(submission.verifier)
+          verifierUserId = await this.findUserByFuzzyUsername(submission.verifier)
           if (verifierUserId) {
             try {
               await this.addCompletedLevel(
@@ -1329,14 +1330,18 @@ export const supabaseOperations = {
           }
         }
 
-        // Add enjoyment rating if provided
-        if (submission.enjoyment_rating != null) {
+        // Add enjoyment rating if provided AND submitter is the verifier
+        // (Only people who completed the level should be able to rate it)
+        if (submission.enjoyment_rating != null && verifierUserId === submission.submitted_by_user_id) {
           try {
             await this.addEnjoymentRating(submission.level_id, submission.enjoyment_rating)
+            console.log(`✅ Added enjoyment rating from verifier/submitter`)
           } catch (error) {
             console.error('⚠️ Failed to add enjoyment rating to level:', error)
             // Don't throw - this is optional
           }
+        } else if (submission.enjoyment_rating != null && verifierUserId !== submission.submitted_by_user_id) {
+          console.log(`ℹ️  Skipping enjoyment rating - submitter is not the verifier (must submit completion separately to rate)`)
         }
       } else if (submission.submission_type === 'completion') {
         // Add to user's completed levels
