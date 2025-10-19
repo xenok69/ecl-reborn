@@ -171,10 +171,14 @@ export async function addLevel(levelData) {
 
 /**
  * Update an existing level via Supabase with placement shifting
+ * @param {string} oldLevelId - The current level ID
+ * @param {object} levelData - The level data to update (excluding id)
+ * @param {number} originalPlacement - The original placement
+ * @param {string} newLevelId - Optional new level ID (if changing the ID)
  */
-export async function updateLevel(levelId, levelData, originalPlacement) {
+export async function updateLevel(oldLevelId, levelData, originalPlacement, newLevelId = null) {
     try {
-        return await supabaseOperations.updateLevel(levelId, levelData, originalPlacement)
+        return await supabaseOperations.updateLevel(oldLevelId, levelData, originalPlacement, newLevelId)
     } catch (error) {
         console.error('Failed to update level in Supabase:', error)
         throw error

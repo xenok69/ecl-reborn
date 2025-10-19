@@ -290,27 +290,99 @@ export const supabaseOperations = {
   },
 
   // Update an existing level with placement shifting
-  async updateLevel(levelId, levelData, originalPlacement) {
+  async updateLevel(oldLevelId, levelData, originalPlacement, newLevelId = null) {
     if (!supabase) {
       throw new Error('Supabase not configured')
     }
 
     try {
+      // Determine if we're changing the level ID
+      const isChangingId = newLevelId && String(newLevelId) !== String(oldLevelId)
+      const effectiveLevelId = isChangingId ? newLevelId : oldLevelId
+
+      if (isChangingId) {
+        console.log(`🔄 Level ID is changing: ${oldLevelId} → ${newLevelId}`)
+        console.log('📦 This will migrate all user completions to the new ID')
+
+        // Step 1: Migrate all user completions from old ID to new ID
+        try {
+          const migrationResult = await this.migrateLevelCompletions(oldLevelId, newLevelId)
+          console.log(`✅ Migrated ${migrationResult.migratedUsers} user completion(s)`)
+
+          if (migrationResult.errors) {
+            console.warn('⚠️  Some completions failed to migrate:', migrationResult.errors)
+          }
+        } catch (migrationError) {
+          console.error('❌ Completion migration failed:', migrationError)
+          throw new Error(`Failed to migrate completions: ${migrationError.message}`)
+        }
+
+        // Step 2: Get the current level data to preserve all fields
+        const { data: currentLevel, error: fetchError } = await supabase
+          .from('levels')
+          .select('*')
+          .eq('id', oldLevelId)
+          .single()
+
+        if (fetchError) {
+          console.error('Error fetching current level:', fetchError)
+          throw fetchError
+        }
+
+        // Step 3: Delete the old level record
+        console.log(`🗑️  Deleting old level record with ID ${oldLevelId}`)
+        const { error: deleteError } = await supabase
+          .from('levels')
+          .delete()
+          .eq('id', oldLevelId)
+
+        if (deleteError) {
+          console.error('Error deleting old level:', deleteError)
+          throw deleteError
+        }
+
+        // Step 4: Insert new level record with new ID and updated data
+        const newLevelData = {
+          ...currentLevel,  // Preserve all existing fields
+          ...levelData,     // Apply updates
+          id: newLevelId    // Use new ID
+        }
+
+        console.log(`➕ Creating new level record with ID ${newLevelId}`)
+        const { data: insertedData, error: insertError } = await supabase
+          .from('levels')
+          .insert(newLevelData)
+          .select()
+
+        if (insertError) {
+          console.error('Error inserting new level:', insertError)
+          throw insertError
+        }
+
+        console.log('✅ Level ID changed successfully with completion migration')
+
+        // Auto-repair placements after operation to ensure consistency
+        await autoRepairPlacements()
+
+        return insertedData
+      }
+
+      // Normal update flow (ID not changing)
       const newPlacement = levelData.placement
-      
+
       if (originalPlacement !== newPlacement) {
         console.log(`🔄 Moving level from placement ${originalPlacement} to ${newPlacement}`)
-        
+
         if (newPlacement < originalPlacement) {
           // Moving up: shift levels down that are between new and old position
           console.log(`🔼 Moving up: shifting levels ${newPlacement}-${originalPlacement-1} down by 1`)
-          
+
           const { data: levelsToShift, error: fetchError } = await supabase
             .from('levels')
             .select('id, placement')
             .gte('placement', newPlacement)
             .lt('placement', originalPlacement)
-            .neq('id', levelId)
+            .neq('id', oldLevelId)
 
           if (fetchError) {
             console.error('Error fetching levels to shift up:', fetchError)
@@ -333,13 +405,13 @@ export const supabaseOperations = {
         } else {
           // Moving down: shift levels up that are between old and new position
           console.log(`🔽 Moving down: shifting levels ${originalPlacement+1}-${newPlacement} up by 1`)
-          
+
           const { data: levelsToShift, error: fetchError } = await supabase
             .from('levels')
             .select('id, placement')
             .gt('placement', originalPlacement)
             .lte('placement', newPlacement)
-            .neq('id', levelId)
+            .neq('id', oldLevelId)
 
           if (fetchError) {
             console.error('Error fetching levels to shift down:', fetchError)
@@ -362,11 +434,11 @@ export const supabaseOperations = {
         }
       }
 
-      // Update the level itself
+      // Update the level itself (ID not included in levelData)
       const { data, error } = await supabase
         .from('levels')
         .update(levelData)
-        .eq('id', levelId)
+        .eq('id', oldLevelId)
         .select()
 
       if (error) {
@@ -827,13 +899,90 @@ export const supabaseOperations = {
 
       // Filter users who have completed this level
       const usersWithLevel = data?.filter(user =>
-        user.completed_levels?.some(entry => entry.lvl === levelId)
+        user.completed_levels?.some(entry => String(entry.lvl) === String(levelId))
       ) || []
 
       console.log('✅ Found users who completed this level:', usersWithLevel.length)
       return usersWithLevel
     } catch (error) {
       console.error('Supabase get users who completed level error:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Migrate all user completions from an old level ID to a new level ID
+   * This is used when a level is reuploaded to GD servers with a new ID
+   * @param {string} oldLevelId - The old level ID
+   * @param {string} newLevelId - The new level ID
+   * @returns {object} - Migration summary { migratedUsers: number, totalCompletions: number }
+   */
+  async migrateLevelCompletions(oldLevelId, newLevelId) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      console.log(`🔄 Migrating completions from level ID ${oldLevelId} to ${newLevelId}`)
+
+      // Get all users who completed the old level
+      const users = await this.getUsersWhoCompletedLevel(oldLevelId)
+
+      if (!users || users.length === 0) {
+        console.log('ℹ️  No users found who completed this level - nothing to migrate')
+        return { migratedUsers: 0, totalCompletions: 0 }
+      }
+
+      console.log(`📊 Found ${users.length} user(s) with completions to migrate`)
+
+      let migratedCount = 0
+      const errors = []
+
+      // For each user, update their completed_levels array
+      for (const user of users) {
+        try {
+          const updatedLevels = user.completed_levels.map(entry => {
+            if (String(entry.lvl) === String(oldLevelId)) {
+              console.log(`  ↪️  Migrating completion for user ${user.username}: ${oldLevelId} → ${newLevelId}`)
+              return { ...entry, lvl: newLevelId }
+            }
+            return entry
+          })
+
+          const { error: updateError } = await supabase
+            .from('user_activity')
+            .update({ completed_levels: updatedLevels })
+            .eq('user_id', user.user_id)
+
+          if (updateError) {
+            console.error(`❌ Failed to migrate completions for user ${user.user_id}:`, updateError)
+            errors.push({ userId: user.user_id, username: user.username, error: updateError.message })
+          } else {
+            migratedCount++
+          }
+        } catch (err) {
+          console.error(`❌ Error processing user ${user.user_id}:`, err)
+          errors.push({ userId: user.user_id, username: user.username, error: err.message })
+        }
+      }
+
+      const summary = {
+        migratedUsers: migratedCount,
+        totalCompletions: users.length,
+        errors: errors.length > 0 ? errors : undefined
+      }
+
+      if (errors.length > 0) {
+        console.warn(`⚠️  Migration completed with ${errors.length} error(s)`)
+        errors.forEach(err => {
+          console.warn(`  - ${err.username} (${err.userId}): ${err.error}`)
+        })
+      }
+
+      console.log(`✅ Migration completed: ${migratedCount}/${users.length} users updated`)
+      return summary
+    } catch (error) {
+      console.error('💥 Completion migration failed:', error)
       throw error
     }
   },

@@ -137,13 +137,18 @@ export const adminSubmitAction = async ({ request, params }) => {
         
         // Prepare level data for Supabase (required fields + optional fields)
         const levelData = {
-            id: levelId,
             placement: parseInt(placement),
             levelName,
             creator,
             verifier  // verifier is required
         }
-        
+
+        // Only include 'id' for new levels, NOT for updates
+        // This prevents changing the level ID, which would break user completions
+        if (!isEditMode) {
+            levelData.id = levelId
+        }
+
         // Add optional fields only if they have values
         if (videoPath) levelData.youtubeVideoId = videoPath
         if (difficulty) levelData.difficulty = difficulty
@@ -156,17 +161,34 @@ export const adminSubmitAction = async ({ request, params }) => {
         // Add or update level in Supabase with placement shifting
         try {
             let result
+            let successMessage = `Level "${levelName}" has been ${isEditMode ? 'updated in' : 'added to'} the database successfully! 🚀`
+
             if (isEditMode && originalLevel) {
+                // Detect if level ID is changing
+                const isIdChanging = levelId !== originalLevelId
+
+                if (isIdChanging) {
+                    console.log(`⚠️ Level ID is changing from ${originalLevelId} to ${levelId}`)
+                    console.log('This will migrate all user completions to the new ID')
+                    successMessage = `Level "${levelName}" updated successfully! 🚀 Level ID changed from ${originalLevelId} to ${levelId}. All user completions have been migrated to the new ID.`
+                }
+
                 // Update existing level with placement shifting
-                result = await updateLevel(originalLevelId, levelData, originalLevel.placement)
+                // Pass the new level ID if it's different from the original
+                result = await updateLevel(
+                    originalLevelId,
+                    levelData,
+                    originalLevel.placement,
+                    isIdChanging ? levelId : null
+                )
             } else {
                 // Add new level with placement shifting
                 result = await addLevel(levelData)
             }
-            
-            return { 
-                success: true, 
-                message: `Level "${levelName}" has been ${isEditMode ? 'updated in' : 'added to'} the database successfully! 🚀`,
+
+            return {
+                success: true,
+                message: successMessage,
                 data: result
             }
         } catch (supabaseError) {
@@ -690,6 +712,11 @@ export default function AdminSubmitRoute() {
                                 required
                             />
                             {actionData?.errors?.levelId && <span className={styles.ErrorText}>{actionData.errors.levelId}</span>}
+                            {isEditMode && (
+                                <div className={styles.PlacementHint} style={{color: '#ff9800'}}>
+                                    ⚠️ <strong>Changing the Level ID will migrate all user completions to the new ID.</strong> Only change this if the level was reuploaded to GD servers with a new ID. All completions will be preserved automatically.
+                                </div>
+                            )}
                         </label>
                     </div>
                 </fieldset>
