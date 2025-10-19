@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Form, useActionData, useNavigation } from 'react-router'
+import { Form, useActionData, useNavigation, redirect } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { difficulties, gamemodes, decorationStyles, extraTagTypes } from '../data/levels.js'
 import { getLevels } from '../lib/levelUtils'
@@ -139,12 +139,8 @@ export const submitRequestAction = async ({ request }) => {
         // Submit to database
         await supabaseOperations.addSubmission(submissionData)
 
-        return {
-            success: true,
-            message: submissionType === 'level'
-                ? `Level submission received! Admins will review "${formData.get('levelName')}" soon.`
-                : `Completion submission received! Admins will review your completion soon.`
-        }
+        // Redirect to My Submissions page after successful submission
+        return redirect('/my-submissions')
 
     } catch (error) {
         console.error('Error submitting request:', error)
