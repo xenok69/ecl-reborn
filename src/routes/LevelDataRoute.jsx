@@ -389,7 +389,7 @@ export default function LevelDataRoute() {
                                         <div className={styles.verifierDetails}>
                                             <span className={styles.verifierName}>{verifier.username}</span>
                                             <span className={styles.verifierDate}>
-                                                {verifier.completedOn ? new Date(verifier.completedOn).toLocaleDateString() : 'N/A'}
+                                                {verifier.completedOn ? new Date(verifier.completedOn).toLocaleString() : 'N/A'}
                                             </span>
                                         </div>
                                     </div>
@@ -473,7 +473,7 @@ export default function LevelDataRoute() {
                                                     </div>
                                                 </Link>
                                             </td>
-                                            <td>{player.completedOn ? new Date(player.completedOn).toLocaleDateString() : 'N/A'}</td>
+                                            <td>{player.completedOn ? new Date(player.completedOn).toLocaleString() : 'N/A'}</td>
                                             <td>
                                                 {player.youtubeLink ? (
                                                     <a

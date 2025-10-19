@@ -177,7 +177,7 @@ function SubmissionDisplay({ submission, onApprove, onDecline }) {
                             <div className={levelDisplayStyles.InfoItem}>
                                 <span className={levelDisplayStyles.InfoLabel}>Date:</span>
                                 <span className={levelDisplayStyles.InfoValue}>
-                                    {new Date(submission.completed_at).toLocaleDateString()}
+                                    {new Date(submission.completed_at).toLocaleString()}
                                 </span>
                             </div>
                         </div>

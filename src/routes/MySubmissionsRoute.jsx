@@ -77,7 +77,7 @@ function SubmissionCard({ submission }) {
                                 <div className={levelDisplayStyles.InfoItem}>
                                     <span className={levelDisplayStyles.InfoLabel}>Submitted:</span>
                                     <span className={levelDisplayStyles.InfoValue}>
-                                        {new Date(submission.submitted_at).toLocaleDateString()}
+                                        {new Date(submission.submitted_at).toLocaleString()}
                                     </span>
                                 </div>
                             </div>
@@ -118,13 +118,13 @@ function SubmissionCard({ submission }) {
                             <div className={levelDisplayStyles.InfoItem}>
                                 <span className={levelDisplayStyles.InfoLabel}>Completed:</span>
                                 <span className={levelDisplayStyles.InfoValue}>
-                                    {new Date(submission.completed_at).toLocaleDateString()}
+                                    {new Date(submission.completed_at).toLocaleString()}
                                 </span>
                             </div>
                             <div className={levelDisplayStyles.InfoItem}>
                                 <span className={levelDisplayStyles.InfoLabel}>Submitted:</span>
                                 <span className={levelDisplayStyles.InfoValue}>
-                                    {new Date(submission.submitted_at).toLocaleDateString()}
+                                    {new Date(submission.submitted_at).toLocaleString()}
                                 </span>
                             </div>
                         </div>
