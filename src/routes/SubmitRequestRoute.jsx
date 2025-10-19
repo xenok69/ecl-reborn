@@ -102,9 +102,14 @@ export const submitRequestAction = async ({ request }) => {
             // Completion submission
             const targetLevelId = formData.get('targetLevelId')
             const youtubeLink = formData.get('youtubeLink')?.trim()
-            const completedAt = formData.get('completedAt')
+            const completedAtInput = formData.get('completedAt')
             const isVerifier = formData.get('isVerifier') === 'true'
             const enjoymentRating = formData.get('enjoymentRating')
+
+            // Convert datetime-local to ISO timestamp
+            const completedAt = completedAtInput
+                ? new Date(completedAtInput).toISOString()
+                : new Date().toISOString()
 
             // Validation
             if (!targetLevelId) errors.targetLevel = 'Please select a level'
@@ -125,7 +130,7 @@ export const submitRequestAction = async ({ request }) => {
                 ...submissionData,
                 target_level_id: targetLevelId,
                 youtube_link: youtubeLink || null,
-                completed_at: completedAt || new Date().toISOString(),
+                completed_at: completedAt,
                 is_verifier: isVerifier,
                 enjoyment_rating: parseFloat(enjoymentRating)
             }
@@ -504,12 +509,15 @@ export default function SubmitRequestRoute() {
 
                             <div className={styles.FormGroup}>
                                 <label className={styles.Label}>
-                                    Completion Date (Optional)
+                                    Completion Date & Time (Optional)
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         name="completedAt"
                                         className={styles.Input}
                                     />
+                                    <div className={styles.FileInputHint}>
+                                        💡 If not provided, defaults to current date & time
+                                    </div>
                                 </label>
                             </div>
 
