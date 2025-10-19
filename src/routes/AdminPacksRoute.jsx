@@ -5,17 +5,30 @@ import { getLevels } from '../lib/levelUtils'
 import { getPackById, addPack, updatePack, deletePack } from '../lib/packUtils'
 import styles from './AdminPacksRoute.module.css'
 
-// Predefined pack categories
+// Predefined pack categories with tier-based points
 const PACK_CATEGORIES = [
-    'Beginner Packs',
-    'Intermediate Packs',
-    'Advanced Packs',
-    'Expert Packs',
-    'Theme Packs',
-    'Challenge Packs',
-    'Creator Packs',
-    'Special Packs'
+    'Free Tier',
+    'Easy Tier',
+    'Normal Tier',
+    'Hard Tier',
+    'Harder Tier',
+    'Insane Tier',
+    'Extreme Tier'
 ]
+
+// Get points based on category tier
+const getCategoryPoints = (category) => {
+    const pointsMap = {
+        'Free Tier': 5,
+        'Easy Tier': 10,
+        'Normal Tier': 15,
+        'Hard Tier': 20,
+        'Harder Tier': 25,
+        'Insane Tier': 35,
+        'Extreme Tier': 50
+    }
+    return pointsMap[category] || 0
+}
 
 export const editPackLoader = async ({ params }) => {
     const packId = params.packId
@@ -61,16 +74,15 @@ export const adminPacksAction = async ({ request, params }) => {
     const name = formData.get('name')?.trim()
     const description = formData.get('description')?.trim()
     const category = formData.get('category')?.trim()
-    const bonusPoints = formData.get('bonusPoints')
     const selectedLevelIds = formData.getAll('selectedLevelIds')
+
+    // Auto-calculate bonus points from category
+    const bonusPoints = getCategoryPoints(category)
 
     // Validation
     if (!name) errors.name = 'Pack name is required'
     if (!packId && !isEditMode) errors.packId = 'Pack ID is required'
     if (!category) errors.category = 'Category is required'
-    if (!bonusPoints || isNaN(bonusPoints) || Number(bonusPoints) < 0) {
-        errors.bonusPoints = 'Valid bonus points required (must be a positive number)'
-    }
     if (selectedLevelIds.length === 0) {
         errors.levels = 'At least one level must be selected'
     }
@@ -143,7 +155,6 @@ export default function AdminPacksRoute() {
     const [name, setName] = useState(existingPack?.name || '')
     const [description, setDescription] = useState(existingPack?.description || '')
     const [category, setCategory] = useState(existingPack?.category || '')
-    const [bonusPoints, setBonusPoints] = useState(existingPack?.bonus_points || 30)
     const [selectedLevelIds, setSelectedLevelIds] = useState(existingPack?.level_ids || [])
     const [allLevels, setAllLevels] = useState([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -278,48 +289,33 @@ export default function AdminPacksRoute() {
                         />
                     </div>
 
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="category" className={styles.label}>
-                                Category *
-                            </label>
-                            <select
-                                id="category"
-                                name="category"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className={styles.select}
-                                required
-                            >
-                                <option value="">Select category...</option>
-                                {PACK_CATEGORIES.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                            {actionData?.errors?.category && (
-                                <span className={styles.fieldError}>{actionData.errors.category}</span>
-                            )}
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label htmlFor="bonusPoints" className={styles.label}>
-                                Bonus Points *
-                            </label>
-                            <input
-                                type="number"
-                                id="bonusPoints"
-                                name="bonusPoints"
-                                value={bonusPoints}
-                                onChange={(e) => setBonusPoints(e.target.value)}
-                                className={styles.input}
-                                min="0"
-                                step="1"
-                                required
-                            />
-                            {actionData?.errors?.bonusPoints && (
-                                <span className={styles.fieldError}>{actionData.errors.bonusPoints}</span>
-                            )}
-                        </div>
+                    <div className={styles.formGroup}>
+                        <label htmlFor="category" className={styles.label}>
+                            Category *
+                        </label>
+                        <select
+                            id="category"
+                            name="category"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className={styles.select}
+                            required
+                        >
+                            <option value="">Select category...</option>
+                            {PACK_CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>
+                                    {cat} ({getCategoryPoints(cat)} points)
+                                </option>
+                            ))}
+                        </select>
+                        {actionData?.errors?.category && (
+                            <span className={styles.fieldError}>{actionData.errors.category}</span>
+                        )}
+                        {category && (
+                            <div className={styles.pointsPreview}>
+                                Bonus Points: {getCategoryPoints(category)}
+                            </div>
+                        )}
                     </div>
                 </fieldset>
 
