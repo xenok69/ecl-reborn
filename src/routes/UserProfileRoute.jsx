@@ -1,6 +1,7 @@
 import { useLoaderData, Link } from 'react-router'
 import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
+import { getUserCompletedPacks, calculateUserPackPoints } from '../lib/packUtils'
 import styles from './UserProfileRoute.module.css'
 
 export const userProfileLoader = async ({ params, request }) => {
@@ -43,6 +44,9 @@ export const userProfileLoader = async ({ params, request }) => {
                 userId,
                 user: null,
                 completedLevels: [],
+                completedPacks: [],
+                levelPoints: 0,
+                packPoints: 0,
                 totalPoints: 0,
                 leaderboardRank: null
             }
@@ -103,7 +107,22 @@ export const userProfileLoader = async ({ params, request }) => {
         }
 
         // Calculate total points from completed levels
-        const totalPoints = completedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+        const levelPoints = completedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+
+        // Get completed packs and pack bonus points
+        let completedPacks = []
+        let packPoints = 0
+        try {
+            completedPacks = await getUserCompletedPacks(userId)
+            packPoints = await calculateUserPackPoints(userId)
+            console.log(`✅ User has completed ${completedPacks.length} pack(s) for ${packPoints} bonus points`)
+        } catch (error) {
+            if (!request.signal.aborted) {
+                console.warn('Could not fetch user pack data:', error)
+            }
+        }
+
+        const totalPoints = levelPoints + packPoints
 
         // Calculate leaderboard rank
         // Get all users and calculate their points to determine rank
@@ -158,6 +177,9 @@ export const userProfileLoader = async ({ params, request }) => {
             userId,
             user: userActivity,
             completedLevels,
+            completedPacks,
+            levelPoints,
+            packPoints,
             totalPoints,
             leaderboardRank,
             error: null
@@ -172,6 +194,9 @@ export const userProfileLoader = async ({ params, request }) => {
             userId: params.userId,
             user: null,
             completedLevels: [],
+            completedPacks: [],
+            levelPoints: 0,
+            packPoints: 0,
             totalPoints: 0,
             leaderboardRank: null
         }
@@ -179,7 +204,7 @@ export const userProfileLoader = async ({ params, request }) => {
 }
 
 export default function UserProfileRoute() {
-    const { userId, user, completedLevels, totalPoints, leaderboardRank, error } = useLoaderData()
+    const { userId, user, completedLevels, completedPacks, levelPoints, packPoints, totalPoints, leaderboardRank, error } = useLoaderData()
 
     // Helper to get Discord avatar URL
     const getAvatarUrl = (userId, avatarHash) => {
@@ -242,6 +267,18 @@ export default function UserProfileRoute() {
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{completedLevels.length}</span>
                             <span className={styles.statLabel}>Completed Levels</span>
+                        </div>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>{completedPacks.length}</span>
+                            <span className={styles.statLabel}>Completed Packs</span>
+                        </div>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>{levelPoints}</span>
+                            <span className={styles.statLabel}>Level Points</span>
+                        </div>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>+{packPoints}</span>
+                            <span className={styles.statLabel}>Pack Bonus</span>
                         </div>
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{totalPoints}</span>
@@ -323,6 +360,43 @@ export default function UserProfileRoute() {
                         <div className={styles.noLevels}>
                             <p>No completed levels yet</p>
                         </div>
+                    )}
+
+                    {/* Completed Packs Section */}
+                    {completedPacks.length > 0 && (
+                        <>
+                            <h3 className={styles.sectionTitle}>Completed Packs</h3>
+                            <div className={styles.packsList}>
+                                {completedPacks.map((pack) => (
+                                    <Link
+                                        key={pack.id}
+                                        to="/packs"
+                                        className={styles.packCard}
+                                    >
+                                        <div className={styles.packCardContent}>
+                                            <div className={styles.packCardHeader}>
+                                                <h4 className={styles.packName}>{pack.name}</h4>
+                                                <span className={styles.packCategory}>{pack.category}</span>
+                                            </div>
+                                            {pack.description && (
+                                                <p className={styles.packDescription}>{pack.description}</p>
+                                            )}
+                                            <div className={styles.packMeta}>
+                                                <span className={styles.packLevelCount}>
+                                                    {pack.levelCount} level{pack.levelCount !== 1 ? 's' : ''}
+                                                </span>
+                                                <span className={styles.packPoints}>
+                                                    +{pack.bonus_points} points
+                                                </span>
+                                            </div>
+                                            <div className={styles.packCompletedDate}>
+                                                Completed: {new Date(pack.completedAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>

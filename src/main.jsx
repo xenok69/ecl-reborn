@@ -20,6 +20,8 @@ import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
 import SubmitRequestRoute, { submitRequestAction } from "./routes/SubmitRequestRoute.jsx";
 import AdminReviewRoute from "./routes/AdminReviewRoute.jsx";
 import MySubmissionsRoute from "./routes/MySubmissionsRoute.jsx";
+import PacksRoute, { packsLoader } from "./routes/PacksRoute.jsx";
+import AdminPacksRoute, { adminPacksAction, editPackLoader } from "./routes/AdminPacksRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -133,6 +135,30 @@ const router = createBrowserRouter([
             <MySubmissionsRoute />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "packs",
+        element: <PacksRoute />,
+        loader: packsLoader,
+      },
+      {
+        path: "admin/packs/create",
+        element: (
+          <AdminProtectedRoute>
+            <AdminPacksRoute />
+          </AdminProtectedRoute>
+        ),
+        action: adminPacksAction,
+      },
+      {
+        path: "admin/packs/edit/:packId",
+        element: (
+          <AdminProtectedRoute>
+            <AdminPacksRoute />
+          </AdminProtectedRoute>
+        ),
+        loader: editPackLoader,
+        action: adminPacksAction,
       },
     ],
   },

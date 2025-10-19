@@ -782,6 +782,15 @@ export const supabaseOperations = {
         }
 
         console.log('✅ Completed level added successfully:', data)
+
+        // Check if this level completion awards any pack completions
+        try {
+          await this.checkAndAwardPackCompletion(userId, levelId)
+        } catch (packError) {
+          console.warn('⚠️  Pack completion check failed (non-fatal):', packError)
+          // Don't throw - pack completion is optional
+        }
+
         return data
       } else {
         console.log('Level already completed:', levelId)
@@ -1431,6 +1440,344 @@ export const supabaseOperations = {
     } catch (error) {
       console.error('Supabase get user submissions error:', error)
       throw error
+    }
+  },
+
+  // Pack Operations
+  async getPacks() {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch packs')
+      return []
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('packs')
+        .select('*')
+        .order('name', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching packs:', error)
+        throw error
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Supabase get packs error:', error)
+      throw error
+    }
+  },
+
+  async getPackById(packId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch pack')
+      return null
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('packs')
+        .select('*')
+        .eq('id', packId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error fetching pack:', error)
+        throw error
+      }
+
+      return data || null
+    } catch (error) {
+      console.error('Supabase get pack by ID error:', error)
+      throw error
+    }
+  },
+
+  async addPack(packData) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('packs')
+        .insert({
+          ...packData,
+          created_at: new Date().toISOString()
+        })
+        .select()
+
+      if (error) {
+        console.error('Error adding pack:', error)
+        throw error
+      }
+
+      console.log('✅ Pack added successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase add pack error:', error)
+      throw error
+    }
+  },
+
+  async updatePack(packId, packData) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('packs')
+        .update(packData)
+        .eq('id', packId)
+        .select()
+
+      if (error) {
+        console.error('Error updating pack:', error)
+        throw error
+      }
+
+      console.log('✅ Pack updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Supabase update pack error:', error)
+      throw error
+    }
+  },
+
+  async deletePack(packId) {
+    if (!supabase) {
+      throw new Error('Supabase not configured')
+    }
+
+    try {
+      console.log(`🗑️  Deleting pack: ${packId}`)
+
+      const { error } = await supabase
+        .from('packs')
+        .delete()
+        .eq('id', packId)
+
+      if (error) {
+        console.error('Error deleting pack:', error)
+        throw error
+      }
+
+      console.log('✅ Pack deleted successfully')
+      return true
+    } catch (error) {
+      console.error('Supabase delete pack error:', error)
+      throw error
+    }
+  },
+
+  async getPacksByLevelId(levelId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot fetch packs by level')
+      return []
+    }
+
+    try {
+      // Fetch all packs and filter in JavaScript since JSONB querying is complex
+      const { data, error } = await supabase
+        .from('packs')
+        .select('*')
+
+      if (error) {
+        console.error('Error fetching packs by level ID:', error)
+        throw error
+      }
+
+      // Filter packs that contain this level ID
+      const packsWithLevel = data?.filter(pack =>
+        pack.level_ids?.some(id => String(id) === String(levelId))
+      ) || []
+
+      return packsWithLevel
+    } catch (error) {
+      console.error('Supabase get packs by level ID error:', error)
+      throw error
+    }
+  },
+
+  async addCompletedPack(userId, packId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping pack completion update')
+      return null
+    }
+
+    try {
+      // First get current user activity
+      const { data: currentActivity, error: fetchError } = await supabase
+        .from('user_activity')
+        .select('completed_packs')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error fetching current activity:', fetchError)
+        throw fetchError
+      }
+
+      const currentPacks = currentActivity?.completed_packs || []
+
+      // Check if pack already completed
+      const packExists = currentPacks.some(entry => entry.packId === packId)
+
+      if (!packExists) {
+        const newEntry = {
+          packId: packId,
+          completedAt: new Date().toISOString()
+        }
+        const updatedPacks = [...currentPacks, newEntry]
+
+        const { data, error } = await supabase
+          .from('user_activity')
+          .upsert({
+            user_id: String(userId),
+            completed_packs: updatedPacks,
+            last_online: new Date().toISOString(),
+            online: true
+          }, {
+            ignoreDuplicates: false
+          })
+          .select()
+
+        if (error) {
+          console.error('Error adding completed pack:', error)
+          throw error
+        }
+
+        console.log('✅ Pack completion added successfully:', packId)
+        return data
+      } else {
+        console.log('Pack already completed:', packId)
+        return currentActivity
+      }
+    } catch (error) {
+      console.error('Supabase add completed pack error:', error)
+      throw error
+    }
+  },
+
+  async removeCompletedPack(userId, packId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping pack completion removal')
+      return null
+    }
+
+    try {
+      // First get current user activity
+      const { data: currentActivity, error: fetchError } = await supabase
+        .from('user_activity')
+        .select('completed_packs')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current activity:', fetchError)
+        throw fetchError
+      }
+
+      const currentPacks = currentActivity?.completed_packs || []
+
+      // Filter out the pack to remove
+      const updatedPacks = currentPacks.filter(entry => entry.packId !== packId)
+
+      const { data, error } = await supabase
+        .from('user_activity')
+        .update({
+          completed_packs: updatedPacks,
+          last_online: new Date().toISOString()
+        })
+        .eq('user_id', String(userId))
+        .select()
+
+      if (error) {
+        console.error('Error removing completed pack:', error)
+        throw error
+      }
+
+      console.log('✅ Pack completion removed successfully:', packId)
+      return data
+    } catch (error) {
+      console.error('Supabase remove completed pack error:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Check if completing a level awards any pack completions
+   * Call this after adding a completed level to auto-award pack bonuses
+   * @param {string} userId - User ID
+   * @param {string} levelId - Level ID that was just completed
+   */
+  async checkAndAwardPackCompletion(userId, levelId) {
+    if (!supabase) {
+      console.warn('Supabase not configured, skipping pack completion check')
+      return null
+    }
+
+    try {
+      console.log(`🔍 Checking pack completions for user ${userId} after completing level ${levelId}`)
+
+      // Get all packs that contain this level
+      const packsWithLevel = await this.getPacksByLevelId(levelId)
+
+      if (!packsWithLevel || packsWithLevel.length === 0) {
+        console.log('ℹ️  Level is not part of any packs')
+        return null
+      }
+
+      console.log(`📦 Found ${packsWithLevel.length} pack(s) containing this level`)
+
+      // Get user's completed levels and packs
+      const userActivity = await this.getUserActivity(userId)
+      if (!userActivity) {
+        console.log('⚠️  User activity not found')
+        return null
+      }
+
+      const completedLevelIds = (userActivity.completed_levels || []).map(entry => String(entry.lvl))
+      const completedPackIds = (userActivity.completed_packs || []).map(entry => entry.packId)
+
+      const newlyCompletedPacks = []
+
+      // Check each pack to see if all levels are now completed
+      for (const pack of packsWithLevel) {
+        // Skip if pack already completed
+        if (completedPackIds.includes(pack.id)) {
+          console.log(`  ⏭️  Pack "${pack.name}" already completed`)
+          continue
+        }
+
+        // Check if all levels in pack are completed
+        const packLevelIds = (pack.level_ids || []).map(id => String(id))
+        const allLevelsCompleted = packLevelIds.every(levelId =>
+          completedLevelIds.includes(String(levelId))
+        )
+
+        if (allLevelsCompleted) {
+          console.log(`  🎉 All levels completed for pack "${pack.name}"! Awarding ${pack.bonus_points} bonus points`)
+          await this.addCompletedPack(userId, pack.id)
+          newlyCompletedPacks.push(pack)
+        } else {
+          const completedCount = packLevelIds.filter(levelId =>
+            completedLevelIds.includes(String(levelId))
+          ).length
+          console.log(`  📊 Pack "${pack.name}": ${completedCount}/${packLevelIds.length} levels completed`)
+        }
+      }
+
+      if (newlyCompletedPacks.length > 0) {
+        console.log(`✅ Awarded ${newlyCompletedPacks.length} new pack completion(s)`)
+      }
+
+      return newlyCompletedPacks
+    } catch (error) {
+      console.error('Error checking pack completions:', error)
+      // Don't throw - this is an optional bonus feature
+      return null
     }
   }
 }

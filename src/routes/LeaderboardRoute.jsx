@@ -1,6 +1,7 @@
 import { useLoaderData, Link } from 'react-router'
 import { supabaseOperations } from '../lib/supabase'
 import { getLevels } from '../lib/levelUtils'
+import { calculateUserPackPoints } from '../lib/packUtils'
 import styles from './LeaderboardRoute.module.css'
 
 export const leaderboardLoader = async ({ request }) => {
@@ -35,25 +36,40 @@ export const leaderboardLoader = async ({ request }) => {
       throw error
     }
 
-    // Calculate points for each user
-    const leaderboard = allUsers.map(user => {
+    // Calculate points for each user (including pack bonuses)
+    const leaderboardPromises = allUsers.map(async (user) => {
       const completedLevelData = user.completed_levels || []
       const userCompletedLevels = allLevels.filter(level =>
         completedLevelData.some(entry => String(entry.lvl) === String(level.id))
       )
-      const points = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+      const levelPoints = userCompletedLevels.reduce((sum, level) => sum + (level.points || 0), 0)
+
+      // Get pack bonus points
+      let packPoints = 0
+      try {
+        packPoints = await calculateUserPackPoints(user.user_id)
+      } catch (error) {
+        console.warn(`Failed to calculate pack points for user ${user.user_id}:`, error)
+      }
+
+      const totalPoints = levelPoints + packPoints
 
       return {
         userId: user.user_id,
         username: user.username || 'Unknown User',
         avatar: user.avatar,
         completedLevels: userCompletedLevels.length,
-        points,
+        levelPoints,
+        packPoints,
+        points: totalPoints,
         online: user.online
       }
     })
 
-    // Sort by points descending
+    // Wait for all pack points calculations
+    const leaderboard = await Promise.all(leaderboardPromises)
+
+    // Sort by total points descending
     leaderboard.sort((a, b) => b.points - a.points)
 
     return {

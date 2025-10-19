@@ -827,3 +827,96 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Packs Section */
+.packsSection {
+    background: var(--color-black-50);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-white-10);
+    box-shadow: 0 4px 16px var(--color-black-30);
+    margin-bottom: 1.5rem;
+}
+
+.packsList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.packCard {
+    background: var(--color-black-30);
+    border: 1px solid var(--color-white-20);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.packCard:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-blue);
+    box-shadow: 0 4px 12px var(--color-blue-30);
+}
+
+.packCardContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.packCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.packName {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-white);
+    margin: 0;
+}
+
+.packCategory {
+    background: var(--color-black-50);
+    border: 1px solid var(--color-white-10);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-gray);
+    white-space: nowrap;
+}
+
+.packDescription {
+    color: var(--color-gray);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.packMeta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.packLevelCount {
+    font-size: 0.85rem;
+    color: var(--color-gray);
+}
+
+.packPoints {
+    background: var(--color-blue);
+    color: var(--color-white);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

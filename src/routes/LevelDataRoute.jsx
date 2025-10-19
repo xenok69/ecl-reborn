@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLoaderData, useNavigate, Link } from 'react-router'
 import { getLevels } from '../lib/levelUtils'
 import { supabaseOperations } from '../lib/supabase'
+import { getPacks } from '../lib/packUtils'
 import { useAuth } from '../hooks/useAuth'
 import { useAdmin } from '../hooks/useAdmin'
 import styles from './LevelDataRoute.module.css'
@@ -15,7 +16,8 @@ export const levelDataLoader = async ({ params, request }) => {
                 placement: params.placement,
                 level: null,
                 completedBy: [],
-                totalLevels: 0
+                totalLevels: 0,
+                packsContainingLevel: []
             }
         }
 
@@ -27,7 +29,8 @@ export const levelDataLoader = async ({ params, request }) => {
                 placement: params.placement,
                 level: null,
                 completedBy: [],
-                totalLevels: 0
+                totalLevels: 0,
+                packsContainingLevel: []
             }
         }
 
@@ -41,7 +44,8 @@ export const levelDataLoader = async ({ params, request }) => {
                 placement: params.placement,
                 level: null,
                 completedBy: [],
-                totalLevels: 0
+                totalLevels: 0,
+                packsContainingLevel: []
             }
         }
 
@@ -53,7 +57,8 @@ export const levelDataLoader = async ({ params, request }) => {
                 placement,
                 level: null,
                 completedBy: [],
-                totalLevels: allLevels.length
+                totalLevels: allLevels.length,
+                packsContainingLevel: []
             }
         }
 
@@ -95,11 +100,31 @@ export const levelDataLoader = async ({ params, request }) => {
             }
         }
 
+        // Fetch packs that contain this level
+        let packsContainingLevel = []
+        try {
+            const allPacks = await supabaseOperations.getPacksByLevelId(level.id)
+            if (allPacks && allPacks.length > 0) {
+                // Enrich with level data
+                const enrichedPacks = allPacks.map(pack => ({
+                    ...pack,
+                    levelCount: (pack.level_ids || []).length
+                }))
+                packsContainingLevel = enrichedPacks
+                console.log(`✅ Found ${packsContainingLevel.length} pack(s) containing this level`)
+            }
+        } catch (error) {
+            if (!request.signal.aborted) {
+                console.warn('Could not fetch packs for this level:', error)
+            }
+        }
+
         return {
             placement,
             level,
             completedBy,
             totalLevels: allLevels.length,
+            packsContainingLevel,
             error: null
         }
     } catch (error) {
@@ -112,13 +137,14 @@ export const levelDataLoader = async ({ params, request }) => {
             placement: params.placement,
             level: null,
             completedBy: [],
-            totalLevels: 0
+            totalLevels: 0,
+            packsContainingLevel: []
         }
     }
 }
 
 export default function LevelDataRoute() {
-    const { placement, level, completedBy, totalLevels, error } = useLoaderData()
+    const { placement, level, completedBy, totalLevels, packsContainingLevel, error } = useLoaderData()
     const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
     const { isAdmin } = useAdmin()
@@ -363,6 +389,42 @@ export default function LevelDataRoute() {
                     </div>
                 )}
             </div>
+
+            {/* Packs Section */}
+            {packsContainingLevel && packsContainingLevel.length > 0 && (
+                <div className={styles.packsSection}>
+                    <h2 className={styles.sectionTitle}>
+                        Part of {packsContainingLevel.length} Level Pack{packsContainingLevel.length !== 1 ? 's' : ''}
+                    </h2>
+                    <div className={styles.packsList}>
+                        {packsContainingLevel.map((pack) => (
+                            <Link
+                                key={pack.id}
+                                to="/packs"
+                                className={styles.packCard}
+                            >
+                                <div className={styles.packCardContent}>
+                                    <div className={styles.packCardHeader}>
+                                        <h3 className={styles.packName}>{pack.name}</h3>
+                                        <span className={styles.packCategory}>{pack.category}</span>
+                                    </div>
+                                    {pack.description && (
+                                        <p className={styles.packDescription}>{pack.description}</p>
+                                    )}
+                                    <div className={styles.packMeta}>
+                                        <span className={styles.packLevelCount}>
+                                            {pack.levelCount} level{pack.levelCount !== 1 ? 's' : ''}
+                                        </span>
+                                        <span className={styles.packPoints}>
+                                            +{pack.bonus_points} bonus points
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Verifiers Section - Only for Admins */}
             {isAdmin && verifiers.length > 0 && (

@@ -14,6 +14,7 @@ export default function Navigation({ navItems, activeNav, onNavChange, className
       icon: "⚡",
       path: "/challenges/",
     },
+    { id: "packs", label: "Packs", icon: "📦", path: "/packs" },
     {
       id: "leaderboard",
       label: "Leaderboard",
@@ -29,6 +30,7 @@ export default function Navigation({ navItems, activeNav, onNavChange, className
     const path = location.pathname;
     if (path === "/" || path === "/") return "home";
     if (path.includes("/challenges/")) return "challenges";
+    if (path.includes("/packs")) return "packs";
     if (path.includes("/leaderboard/")) return "leaderboard";
     if (path.includes("/about")) return "about";
     return null;

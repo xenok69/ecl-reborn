@@ -10,6 +10,7 @@ import styles from "./Header.module.css";
 const NAV_ITEMS = [
   { id: "home", label: "Home", icon: "🏠", path: "/" },
   { id: "challenges", label: "Challenges", icon: "⚡", path: "/challenges/" },
+  { id: "packs", label: "Packs", icon: "📦", path: "/packs" },
   { id: "leaderboard", label: "Leaderboard", icon: "🏆", path: "/leaderboard/" },
   { id: "about", label: "About", icon: "✨", path: "/about/" },
 ];
