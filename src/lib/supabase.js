@@ -302,22 +302,9 @@ export const supabaseOperations = {
 
       if (isChangingId) {
         console.log(`🔄 Level ID is changing: ${oldLevelId} → ${newLevelId}`)
-        console.log('📦 This will migrate all user completions to the new ID')
+        console.log('📦 Following order: Create copy → Migrate completions → Delete old → Move to correct placement')
 
-        // Step 1: Migrate all user completions from old ID to new ID
-        try {
-          const migrationResult = await this.migrateLevelCompletions(oldLevelId, newLevelId)
-          console.log(`✅ Migrated ${migrationResult.migratedUsers} user completion(s)`)
-
-          if (migrationResult.errors) {
-            console.warn('⚠️  Some completions failed to migrate:', migrationResult.errors)
-          }
-        } catch (migrationError) {
-          console.error('❌ Completion migration failed:', migrationError)
-          throw new Error(`Failed to migrate completions: ${migrationError.message}`)
-        }
-
-        // Step 2: Get the current level data to preserve all fields
+        // Step 1: Get the current level data to preserve all fields
         const { data: currentLevel, error: fetchError } = await supabase
           .from('levels')
           .select('*')
@@ -329,7 +316,64 @@ export const supabaseOperations = {
           throw fetchError
         }
 
-        // Step 3: Delete the old level record
+        const originalPlacementValue = currentLevel.placement
+        console.log(`📍 Original level placement: ${originalPlacementValue}`)
+
+        // Step 2: Use placement 0 as temporary (since valid placements start at 1)
+        // Try 0 first, fall back to -1 if there's a constraint
+        let tempPlacement = 0
+        let insertedData = null
+
+        // Step 3: Insert new level with temporary placement
+        const createNewLevelData = (placement) => ({
+          ...currentLevel,      // Preserve all existing fields
+          ...levelData,         // Apply updates
+          id: newLevelId,       // Use new ID
+          placement: placement  // Temporary placeholder placement
+        })
+
+        console.log(`➕ Creating copy with ID ${newLevelId} at temporary placement ${tempPlacement}`)
+        const { data: insertData1, error: insertError1 } = await supabase
+          .from('levels')
+          .insert(createNewLevelData(tempPlacement))
+          .select()
+
+        if (insertError1) {
+          // If placement 0 failed (e.g., check constraint), try -1
+          console.warn(`Placement ${tempPlacement} failed, trying -1:`, insertError1.message)
+          tempPlacement = -1
+
+          console.log(`➕ Retrying with temporary placement ${tempPlacement}`)
+          const { data: insertData2, error: insertError2 } = await supabase
+            .from('levels')
+            .insert(createNewLevelData(tempPlacement))
+            .select()
+
+          if (insertError2) {
+            console.error('Error inserting new level with temp placement -1:', insertError2)
+            throw insertError2
+          }
+          insertedData = insertData2
+        } else {
+          insertedData = insertData1
+        }
+
+        // Step 4: Migrate all user completions from old ID to new ID
+        try {
+          const migrationResult = await this.migrateLevelCompletions(oldLevelId, newLevelId)
+          console.log(`✅ Migrated ${migrationResult.migratedUsers} user completion(s)`)
+
+          if (migrationResult.errors) {
+            console.warn('⚠️  Some completions failed to migrate:', migrationResult.errors)
+          }
+        } catch (migrationError) {
+          console.error('❌ Completion migration failed:', migrationError)
+          // Try to clean up - delete the new level we just created
+          await supabase.from('levels').delete().eq('id', newLevelId)
+          throw new Error(`Failed to migrate completions: ${migrationError.message}`)
+        }
+
+        // Step 5: Delete the old level record
         console.log(`🗑️  Deleting old level record with ID ${oldLevelId}`)
         const { error: deleteError } = await supabase
           .from('levels')
@@ -341,30 +385,28 @@ export const supabaseOperations = {
           throw deleteError
         }
 
-        // Step 4: Insert new level record with new ID and updated data
-        const newLevelData = {
-          ...currentLevel,  // Preserve all existing fields
-          ...levelData,     // Apply updates
-          id: newLevelId    // Use new ID
-        }
+        // Step 6: Move new level to the original placement
+        // After deletion, there's a gap at originalPlacementValue
+        // We just update the new level's placement, and auto-repair will fix everything
+        console.log(`📍 Moving new level from ${tempPlacement} to ${originalPlacementValue}`)
 
-        console.log(`➕ Creating new level record with ID ${newLevelId}`)
-        const { data: insertedData, error: insertError } = await supabase
+        const { data: finalData, error: updateError } = await supabase
           .from('levels')
-          .insert(newLevelData)
+          .update({ placement: originalPlacementValue })
+          .eq('id', newLevelId)
           .select()
 
-        if (insertError) {
-          console.error('Error inserting new level:', insertError)
-          throw insertError
+        if (updateError) {
+          console.error('Error updating new level placement:', updateError)
+          throw updateError
         }
 
         console.log('✅ Level ID changed successfully with completion migration')
 
-        // Auto-repair placements after operation to ensure consistency
+        // Auto-repair placements to fix any gaps or duplicates
         await autoRepairPlacements()
 
-        return insertedData
+        return finalData
       }
 
       // Normal update flow (ID not changing)
