@@ -280,11 +280,6 @@ export default function PacksRoute() {
                                                     to={`/level/${level.placement}`}
                                                     className={`${styles.levelCard} ${isCompleted ? styles.levelCardCompleted : ''}`}
                                                 >
-                                                    {isCompleted && (
-                                                        <div className={styles.completionBadge}>
-                                                            ✓
-                                                        </div>
-                                                    )}
                                                     {thumbnailUrl && (
                                                         <div className={styles.levelThumbnail}>
                                                             <img
