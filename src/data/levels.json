@@ -5,7 +5,7 @@
       "maxPoints": 100,
       "minPoints": 1
     },
-    "lastUpdated": "2025-08-30"
+    "lastUpdated": "2025-08-26"
   },
   "difficulties": {
     "FREE": "Free",
@@ -37,21 +37,34 @@
     "MINIMALIST": "Minimalist",
     "OVERDECORATED": "Overdecorated",
     "1.0": "1.0",
-    "Pixel": "Pixel",
-    "ART": "Art"
+    "LAYOUT": "Layout",
+    "Atmosphere": "Atmosphere"
   },
   "extraTagTypes": {
     "EPILEPSY": "Epilepsy",
     "DUAL": "Dual",
     "MEMORY": "Memory",
+    "TIMING": "Timing",
     "CBF": "CBF",
     "CAMERA_ABUSE": "Camera Abuse",
     "SHADER_ABUSE": "Shader Abuse",
-    "2P": "2P",
-    "FAST_PACED": "Fast Paced",
-    "SLOW_PACED": "Slow Paced",
-    "CLICK_SYNC": "Click Sync",
-    "MENTOS_GAMEPLAY": "Mentos Gameplay"
+    "HIGH_CPS": "High CPS",
+    "FLOW": "Flow"
   },
-  "levels": []
+  "levels": [
+    {
+      "placement": 1,
+      "levelName": "so CRACKED",
+      "creator": "MentosTeeGD",
+      "verifier": "xenok1",
+      "id": "103463023",
+      "youtubeVideoId": "YP06jhz3Jqo",
+      "tags": {
+        "difficulty": "Hard",
+        "gamemode": "Mixed",
+        "decorationStyle": "Effect",
+        "extraTags": ["Epilepsy"]
+      }
+    }
+  ]
 }

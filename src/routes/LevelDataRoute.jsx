@@ -376,6 +376,22 @@ export default function LevelDataRoute() {
                             </button>
                         </span>
                     </div>
+                    <div className={styles.metadataItem}>
+                        <span className={styles.metaLabel}>NONG</span>
+                        {level.nong ? (
+                            <a
+                                href={level.nong}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.nongIcon}
+                                title="Listen to custom song"
+                            >
+                                🎵
+                            </a>
+                        ) : (
+                            <span className={styles.metaValue}>None</span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Extra Tags as inline badges */}

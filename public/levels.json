@@ -36,7 +36,9 @@
     "THEMED": "Themed",
     "MINIMALIST": "Minimalist",
     "OVERDECORATED": "Overdecorated",
-    "1.0": "1.0"
+    "1.0": "1.0",
+    "LAYOUT": "Layout",
+    "Atmosphere": "Atmosphere"
   },
   "extraTagTypes": {
     "EPILEPSY": "Epilepsy",
@@ -45,7 +47,9 @@
     "TIMING": "Timing",
     "CBF": "CBF",
     "CAMERA_ABUSE": "Camera Abuse",
-    "SHADER_ABUSE": "Shader Abuse"
+    "SHADER_ABUSE": "Shader Abuse",
+    "HIGH_CPS": "High CPS",
+    "FLOW": "Flow"
   },
   "levels": [
     {

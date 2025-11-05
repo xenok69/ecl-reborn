@@ -150,6 +150,18 @@
     transform: translateY(0);
 }
 
+.nongIcon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.nongIcon:hover {
+    transform: scale(1.2);
+}
+
 /* Inline Badges for Extra Tags */
 .extraTagsRow {
     display: flex;
