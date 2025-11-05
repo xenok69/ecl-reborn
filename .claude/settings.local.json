@@ -14,7 +14,8 @@
       "Bash(git sparse-checkout:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm run dev:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
