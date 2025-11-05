@@ -6,22 +6,38 @@ import "./index.css";
 import App from "./App.jsx";
 import Header from "./components/Header.jsx";
 import HomeRoute from "./routes/HomeRoute.jsx";
-import ChallengesRoute, { challengesLoader } from "./routes/ChallengesRoute.jsx";
+import ChallengesRoute, {
+  challengesLoader,
+} from "./routes/ChallengesRoute.jsx";
 import SignInRoute from "./routes/SignInRoute.jsx";
-import AdminSubmitRoute, { adminSubmitAction, editLevelLoader } from "./routes/AdminSubmitRoute.jsx";
-import AdminCompletionsRoute, { adminCompletionsAction } from "./routes/AdminCompletionsRoute.jsx";
-import LeaderboardRoute, { leaderboardLoader } from "./routes/LeaderboardRoute.jsx";
-import UserProfileRoute, { userProfileLoader } from "./routes/UserProfileRoute.jsx";
+import AdminSubmitRoute, {
+  adminSubmitAction,
+  editLevelLoader,
+} from "./routes/AdminSubmitRoute.jsx";
+import AdminCompletionsRoute, {
+  adminCompletionsAction,
+} from "./routes/AdminCompletionsRoute.jsx";
+import LeaderboardRoute, {
+  leaderboardLoader,
+} from "./routes/LeaderboardRoute.jsx";
+import UserProfileRoute, {
+  userProfileLoader,
+} from "./routes/UserProfileRoute.jsx";
 import LevelDataRoute, { levelDataLoader } from "./routes/LevelDataRoute.jsx";
 import SearchRoute from "./routes/SearchRoute.jsx";
 import AboutRoute from "./routes/AboutRoute.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
-import SubmitRequestRoute, { submitRequestAction } from "./routes/SubmitRequestRoute.jsx";
+import SubmitRequestRoute, {
+  submitRequestAction,
+} from "./routes/SubmitRequestRoute.jsx";
 import AdminReviewRoute from "./routes/AdminReviewRoute.jsx";
 import MySubmissionsRoute from "./routes/MySubmissionsRoute.jsx";
 import PacksRoute, { packsLoader } from "./routes/PacksRoute.jsx";
-import AdminPacksRoute, { adminPacksAction, editPackLoader } from "./routes/AdminPacksRoute.jsx";
+import AdminPacksRoute, {
+  adminPacksAction,
+  editPackLoader,
+} from "./routes/AdminPacksRoute.jsx";
 
 const router = createBrowserRouter([
   {

@@ -71,6 +71,7 @@ export const adminSubmitAction = async ({ request, params }) => {
     const gamemode = formData.get('gamemode')
     const decorationStyle = formData.get('decorationStyle')
     const selectedExtraTags = formData.getAll('selectedExtraTags')
+    const nong = formData.get('nong')?.trim()
 
     // Extract video ID from full YouTube URL or use as-is if it's already an ID
     const extractYoutubeId = (input) => {
@@ -102,6 +103,15 @@ export const adminSubmitAction = async ({ request, params }) => {
     // Validate YouTube video input
     if (youtubeVideoInput && !youtubeVideoId) {
         errors.video = 'Invalid YouTube URL or video ID. Please check the format.'
+    }
+
+    // Validate NONG URL if provided
+    if (nong) {
+        try {
+            new URL(nong)
+        } catch {
+            errors.nong = 'Invalid URL format. Please enter a valid link.'
+        }
     }
 
     // Optional fields - no validation needed
@@ -155,6 +165,7 @@ export const adminSubmitAction = async ({ request, params }) => {
         if (gamemode) levelData.gamemode = gamemode
         if (decorationStyle) levelData.decorationStyle = decorationStyle
         if (selectedExtraTags && selectedExtraTags.length > 0) levelData.extraTags = selectedExtraTags
+        if (nong) levelData.nong = nong
         
         console.log('📝 Sending level data to Supabase:', levelData)
         
@@ -717,6 +728,23 @@ export default function AdminSubmitRoute() {
                                     ⚠️ <strong>Changing the Level ID will migrate all user completions to the new ID.</strong> Only change this if the level was reuploaded to GD servers with a new ID. All completions will be preserved automatically.
                                 </div>
                             )}
+                        </label>
+                    </div>
+
+                    <div className={styles.FormGroup}>
+                        <label className={styles.Label}>
+                            NONG Link (Optional)
+                            <input
+                                type="url"
+                                name="nong"
+                                className={`${styles.Input} ${actionData?.errors?.nong ? styles.Error : ''}`}
+                                placeholder="Link to song not on Newgrounds"
+                                defaultValue={editLevel?.nong || ''}
+                            />
+                            {actionData?.errors?.nong && <span className={styles.ErrorText}>{actionData.errors.nong}</span>}
+                            <div className={styles.FileInputHint}>
+                                💡 NONG = "Not on Newgrounds" - Link to the song if it's not available on Newgrounds
+                            </div>
                         </label>
                     </div>
                 </fieldset>

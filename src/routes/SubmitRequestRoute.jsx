@@ -41,6 +41,7 @@ export const submitRequestAction = async ({ request }) => {
             const decorationStyle = formData.get('decorationStyle')
             const selectedExtraTags = formData.getAll('selectedExtraTags')
             const enjoymentRating = formData.get('enjoymentRating')
+            const nong = formData.get('nong')?.trim()
 
             // Validation
             if (!levelName) errors.levelName = 'Level name is required'
@@ -79,6 +80,15 @@ export const submitRequestAction = async ({ request }) => {
                 errors.video = 'Invalid YouTube URL or video ID'
             }
 
+            // Validate NONG URL if provided
+            if (nong) {
+                try {
+                    new URL(nong)
+                } catch {
+                    errors.nong = 'Invalid URL format. Please enter a valid link.'
+                }
+            }
+
             if (Object.keys(errors).length > 0) {
                 return { success: false, errors }
             }
@@ -95,7 +105,8 @@ export const submitRequestAction = async ({ request }) => {
                 decoration_style: decorationStyle,
                 extra_tags: selectedExtraTags,
                 suggested_placement: suggestedPlacement ? parseInt(suggestedPlacement) : null,
-                enjoyment_rating: parseFloat(enjoymentRating)
+                enjoyment_rating: parseFloat(enjoymentRating),
+                nong: nong || null
             }
 
         } else if (submissionType === 'completion') {
@@ -341,6 +352,22 @@ export default function SubmitRequestRoute() {
                                         required
                                     />
                                     {actionData?.errors?.levelId && <span className={styles.ErrorText}>{actionData.errors.levelId}</span>}
+                                </label>
+                            </div>
+
+                            <div className={styles.FormGroup}>
+                                <label className={styles.Label}>
+                                    NONG Link (Optional)
+                                    <input
+                                        type="url"
+                                        name="nong"
+                                        className={`${styles.Input} ${actionData?.errors?.nong ? styles.Error : ''}`}
+                                        placeholder="Link to song not on Newgrounds"
+                                    />
+                                    {actionData?.errors?.nong && <span className={styles.ErrorText}>{actionData.errors.nong}</span>}
+                                    <div className={styles.FileInputHint}>
+                                        💡 NONG = "Not on Newgrounds" - Link to the song if it's not available on Newgrounds
+                                    </div>
                                 </label>
                             </div>
                         </fieldset>
